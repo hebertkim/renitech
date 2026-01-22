@@ -18,9 +18,3 @@ class User(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
     balance = Column(Float, default=0)
-
-    # ==========================
-    # Relacionamentos
-    # ==========================
-    expenses = relationship("Expense", back_populates="user")
-    incomes = relationship("Income", back_populates="user")  # 🔹 Adicionado para receitas
