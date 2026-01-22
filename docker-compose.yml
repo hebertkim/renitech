@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  # ===============================
+  # Backend (FastAPI)
+  # ===============================
+  api:
+    build: ./backend
+    container_name: renitech-api
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mysql+mysqlconnector://renitech_user:user123@db:3306/renitech_db
+    volumes:
+      # 🔥 Volume para arquivos estáticos (avatars, uploads, etc)
+      - ./assets:/app/assets
+    networks:
+      - renitech-net
+
+  # ===============================
+  # Banco de Dados (MySQL)
+  # ===============================
+  db:
+    image: mysql:8.0
+    container_name: renitech-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: renitech_db
+      MYSQL_USER: renitech_user
+      MYSQL_PASSWORD: user123
+    ports:
+      - "3306:3306"
+    volumes:
+      - renitech_db_data:/var/lib/mysql
+    networks:
+      - renitech-net
+
+  # ===============================
+  # Frontend (Vue.js)
+  # ===============================
+  app:
+    build: ./frontend
+    container_name: renitech-app
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+    depends_on:
+      - api
+    networks:
+      - renitech-net
+
+# ===============================
+# Volumes
+# ===============================
+volumes:
+  renitech_db_data:
+
+# ===============================
+# Network
+# ===============================
+networks:
+  renitech-net:
+    driver: bridge

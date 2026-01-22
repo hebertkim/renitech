@@ -1,0 +1,17 @@
+fastapi==0.112.0
+uvicorn[standard]==0.24.0
+SQLAlchemy==2.0.32
+pydantic==2.6.2
+mysql-connector-python==8.4.0
+pymysql==1.1.1
+cryptography==46.0.3
+selenium==4.14.0
+webdriver-manager==3.9.0
+requests==2.32.0
+pydantic[email]
+email-validator
+passlib[argon2]==1.7.4
+argon2-cffi
+python-jose
+python-multipart
+Pillow
