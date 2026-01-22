@@ -10,9 +10,9 @@ from sqlalchemy.exc import OperationalError
 
 DB_HOST = os.getenv("DB_HOST", "db")
 DB_PORT = os.getenv("DB_PORT", "3306")
-DB_USER = os.getenv("DB_USER", "finance_user")
+DB_USER = os.getenv("DB_USER", "renitech_user")
 DB_PASS = os.getenv("DB_PASS", "user123")
-DB_NAME = os.getenv("DB_NAME", "finance_db")
+DB_NAME = os.getenv("DB_NAME", "renitech_db")
 
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
