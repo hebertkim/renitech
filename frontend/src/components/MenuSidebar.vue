@@ -30,7 +30,7 @@
             :key="submenu.name"
             class="text-sm text-white hover:text-indigo-400"
           >
-            <a :href="submenu.href">{{ submenu.name }}</a>
+            <RouterLink :to="submenu.href">{{ submenu.name }}</RouterLink>
           </li>
         </ul>
       </DisclosurePanel>
@@ -40,6 +40,7 @@
 
 <script setup>
 import { ref } from "vue";
+import { RouterLink } from "vue-router";
 import {
   Disclosure,
   DisclosureButton,
@@ -47,58 +48,67 @@ import {
 } from "@headlessui/vue";
 import {
   HomeIcon,
-  ServerIcon,
-  MagnifyingGlassCircleIcon,
-  ChartBarSquareIcon,
-  DocumentChartBarIcon,
-  WrenchScrewdriverIcon,
-  Cog6ToothIcon,
+  ShoppingBagIcon,
   ClipboardDocumentListIcon,
-  CurrencyDollarIcon,
-  BuildingStorefrontIcon,
-  ShieldCheckIcon,
-  UserGroupIcon,
+  UsersIcon,
+  Cog6ToothIcon,
+  CreditCardIcon,
 } from "@heroicons/vue/24/outline";
 
-// MENU OFICIAL DO FINZIA
-// MENU ATUALIZADO – SOMENTE VIEWS IMPLEMENTADAS
+// MENU RENITECH (LIMPO)
 const navigation = [
   {
     name: "Dashboard",
     icon: HomeIcon,
     submenu: [
-      { name: "Dashboard Geral", href: "/dashboard" },
+      { name: "Visão Geral", href: "/dashboard" },
     ],
   },
 
   {
-    name: "Financeiro",
-    icon: CurrencyDollarIcon,
+    name: "Catálogo",
+    icon: ShoppingBagIcon,
     submenu: [
-      { name: "Contas", href: "/accounts" },        // AccountsView.vue
-      { name: "Despesas", href: "/expenses" },     // ExpensesView.vue
-      { name: "Receitas", href: "/incomes" },      // IncomesView.vue
-      { name: "Categorias", href: "/categories" }, // CategoriesView.vue
+      { name: "Produtos", href: "/products" },
+      { name: "Categorias", href: "/product-categories" },
     ],
   },
 
   {
-    name: "Perfil",
-    icon: ShieldCheckIcon,
+    name: "Pedidos",
+    icon: ClipboardDocumentListIcon,
     submenu: [
-      { name: "Configurações do Perfil", href: "/profile" }, // ProfileSettings.vue
+      { name: "Lista de Pedidos", href: "/orders" },
     ],
   },
 
   {
-    name: "Usuários",
-    icon: UserGroupIcon,
+    name: "Clientes",
+    icon: UsersIcon,
     submenu: [
-      { name: "Usuários", href: "/users" }, // UsersView.vue
+      { name: "Clientes", href: "/customers" },
+    ],
+  },
+
+  {
+    name: "Loja",
+    icon: Cog6ToothIcon,
+    submenu: [
+      { name: "Configurações", href: "/store-settings" },
+      { name: "Banners", href: "/banners" },
+      { name: "Domínio", href: "/domain" },
+    ],
+  },
+
+  {
+    name: "Assinatura",
+    icon: CreditCardIcon,
+    submenu: [
+      { name: "Meu Plano", href: "/subscription" },
+      { name: "Faturas", href: "/invoices" },
     ],
   },
 ];
-
 
 const activeIndex = ref(null);
 
