@@ -11,7 +11,10 @@ from app.schemas.category import (
 )
 from app.database import get_db
 
-router = APIRouter()
+# ==============================
+# Router
+# ==============================
+router = APIRouter(prefix="/categories", tags=["Categories"])
 
 # =========================
 # CRIAR CATEGORIA

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Column, String, Float, DateTime, Boolean, ForeignKey, Numeric
 from sqlalchemy.sql import func
 from app.database import Base, get_db
+from app.models.stock import StockMovement
 from PIL import Image
 import uuid
 import os
@@ -19,6 +20,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 # =========================
 class Product(Base):
     __tablename__ = "products"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
@@ -47,7 +49,7 @@ class Product(Base):
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
 
     # Relação com estoque
-    stock_movements = relationship("StockMovement", back_populates="product")
+    stock_movements = relationship("StockMovement", back_populates="product", cascade="all, delete-orphan")
 
 
 # =========================
@@ -127,3 +129,5 @@ def delete_product_image(image_id: str, db: Session = Depends(get_db)):
     db.delete(image)
     db.commit()
     return JSONResponse({"detail": "Image deleted"})
+
+stock_movements = relationship("StockMovement", back_populates="product")

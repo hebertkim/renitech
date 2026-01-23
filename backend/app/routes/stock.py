@@ -1,23 +1,62 @@
+# app/routes/stock.py
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
-from app.schemas.stock import Stock, StockCreate
-from app import crud, schemas
+
 from app.database import get_db
+from app.schemas.stock import Stock, StockCreate
+from app.crud import stock as crud
 
-router = APIRouter()
+# ==============================
+# Router
+# ==============================
+router = APIRouter(prefix="/stocks", tags=["Stocks"])
 
-# Adicionar estoque (entrada)
-@router.post("/stock/{product_id}/add", response_model=schemas.Stock)
-def add_stock(product_id: str, quantity: float, db: Session = Depends(get_db)):
-    return crud.add_stock(db=db, product_id=product_id, quantity=quantity)
+# =========================
+# Adicionar entrada de estoque
+# =========================
+@router.post("/{product_id}/add", response_model=Stock)
+def add_stock_route(
+    product_id: str,
+    stock_data: StockCreate,
+    db: Session = Depends(get_db)
+):
+    if stock_data.movement_type != "IN":
+        raise HTTPException(status_code=400, detail="Use 'OUT' movement_type for removal")
 
+    movement = crud.add_stock(
+        db=db,
+        product_id=product_id,
+        quantity=stock_data.quantity
+    )
+    return movement
+
+# =========================
 # Remover estoque (saída)
-@router.post("/stock/{product_id}/remove", response_model=schemas.Stock)
-def remove_stock(product_id: str, quantity: float, db: Session = Depends(get_db)):
-    return crud.remove_stock(db=db, product_id=product_id, quantity=quantity)
+# =========================
+@router.post("/{product_id}/remove", response_model=Stock)
+def remove_stock_route(
+    product_id: str,
+    stock_data: StockCreate,
+    db: Session = Depends(get_db)
+):
+    if stock_data.movement_type != "OUT":
+        raise HTTPException(status_code=400, detail="Use 'IN' movement_type for addition")
 
+    movement = crud.remove_stock(
+        db=db,
+        product_id=product_id,
+        quantity=stock_data.quantity
+    )
+    return movement
+
+# =========================
 # Listar movimentos de estoque
-@router.get("/stock/{product_id}/movements", response_model=List[schemas.Stock])
-def list_stock_movements(product_id: str, db: Session = Depends(get_db)):
-    return db.query(Stock).filter(Stock.product_id == product_id).all()
+# =========================
+@router.get("/{product_id}/movements", response_model=List[Stock])
+def list_stock_movements_route(
+    product_id: str,
+    db: Session = Depends(get_db)
+):
+    movements = crud.get_stock_movements(db=db, product_id=product_id)
+    return movements

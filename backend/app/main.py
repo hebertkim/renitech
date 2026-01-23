@@ -2,13 +2,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
 import os
 
 # ============================
 # 🔥 IMPORTANTE: garante que TODOS os models sejam registrados
 # ============================
-import app.models  # Garante que todos os models sejam carregados
+import app.models  # Todos os models carregados
 
 from app.database import Base, engine, wait_for_db, SessionLocal
 
@@ -20,7 +19,7 @@ from app.routes import (
     users,
     products,
     categories,
-    stock,  # Novo módulo de estoque
+    stock,  # Movimentações de estoque
 )
 
 # ============================
@@ -35,32 +34,27 @@ app = FastAPI(
 # ============================
 # ✅ SERVIR ARQUIVOS ESTÁTICOS
 # ============================
-
-# Diretório base do backend
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Pastas existentes (avatars)
+# Diretórios para avatars e uploads
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 PROFILE_DIR = os.path.join(ASSETS_DIR, "img", "profile")
 os.makedirs(PROFILE_DIR, exist_ok=True)
-app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 
-# Pasta para uploads de produtos
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 UPLOADS_DIR = os.path.join(STATIC_DIR, "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
-# Monta diretório estático
+# Montagem
+app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-# Agora as imagens podem ser acessadas via:
-# http://localhost:8000/static/uploads/<nome_arquivo>.webp
 
 # ============================
 # ✅ CORS (FRONTEND VUE)
 # ============================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # depois podemos restringir para http://localhost:5173
+    allow_origins=["*"],  # Para desenvolvimento; em produção, restringir
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,9 +65,9 @@ app.add_middleware(
 # ============================
 app.include_router(dashboard.router)
 app.include_router(users.router)
-app.include_router(products.router)  # Produtos + imagens
-app.include_router(categories.router)  # Categorias
-app.include_router(stock.router)  # Movimentações de estoque
+app.include_router(products.router)
+app.include_router(categories.router)
+app.include_router(stock.router)
 
 # ============================
 # DEPENDÊNCIA DB
@@ -92,8 +86,8 @@ def get_db():
 def startup_event():
     print("⏳ Aguardando banco de dados...")
     wait_for_db()
-
     print("✅ Banco conectado!")
+
     print("📦 Criando tabelas...")
     Base.metadata.create_all(bind=engine)
 

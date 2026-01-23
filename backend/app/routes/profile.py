@@ -6,7 +6,10 @@ from app.models.user import User
 from app.schemas.user import UserProfileResponse, UserProfileUpdate
 from app.security import get_current_user, hash_password
 
-router = APIRouter(prefix="/profile", tags=["Profile"])
+# ==============================
+# Router
+# ==============================
+router = APIRouter(prefix="/profiles", tags=["Profiles"])
 
 @router.get("/me", response_model=UserProfileResponse)
 def get_my_profile(

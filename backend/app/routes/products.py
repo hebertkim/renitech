@@ -13,7 +13,10 @@ from PIL import Image
 UPLOAD_DIR = "static/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-router = APIRouter()
+# ==============================
+# Router
+# ==============================
+router = APIRouter(prefix="/products", tags=["Products"])
 
 # =========================
 # PRODUTOS CRUD
