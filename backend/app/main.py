@@ -7,7 +7,7 @@ import os
 # ============================
 # 🔥 IMPORTANTE: garante que TODOS os models sejam registrados
 # ============================
-import app.models  
+import app.models  # Garante que todos os models sejam carregados
 
 from app.database import Base, engine, wait_for_db, SessionLocal
 
@@ -18,16 +18,17 @@ from app.database import Base, engine, wait_for_db, SessionLocal
 from app.routes import (
     dashboard,
     users,
+    products,
+    categories,
 )
-
 
 # ============================
 # APP
 # ============================
 app = FastAPI(
-    title="Finance API",
+    title="Renitech API",
     version="1.0.0",
-    description="API de controle financeiro pessoal"
+    description="API para o sistema e-commerce Renitech"
 )
 
 # ============================
@@ -66,6 +67,8 @@ app.add_middleware(
 # ============================
 app.include_router(dashboard.router)
 app.include_router(users.router)
+app.include_router(products.router)  # Rota de produtos
+app.include_router(categories.router)  # Rota de categorias
 
 # ============================
 # DEPENDÊNCIA DB
@@ -76,7 +79,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 # ============================
 # STARTUP
@@ -90,7 +92,6 @@ def startup_event():
     print("📦 Criando tabelas...")
     Base.metadata.create_all(bind=engine)
 
-    
     print("🚀 API pronta para uso!")
 
 # ============================
@@ -100,6 +101,6 @@ def startup_event():
 def root():
     return {
         "status": "ok",
-        "message": "Finance API rodando",
+        "message": "Renitech API rodando",
         "docs": "/docs"
     }
