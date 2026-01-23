@@ -1,68 +1,46 @@
-# app/crud/order.py
 from sqlalchemy.orm import Session
-from app.models.order import Order, OrderItem, OrderStatus
-from app.models.product import Product, StockMovement, StockMovementType
+from app.models.order import Order, OrderItem, OrderStatus  # Removendo OrderStatusHistory
+from app.schemas.order import OrderCreate, OrderStatusUpdate
+from app.models.product import Product
 
 # =========================
 # Criar pedido
 # =========================
-def create_order(db: Session, user_id: str, items: list):
+def create_order(db: Session, order: OrderCreate):
+    db_order = Order(user_id=order.user_id)
     total = 0.0
-    order_items = []
 
-    for item in items:
-        product = db.query(Product).filter(Product.id == item['product_id']).first()
-        if not product:
-            raise Exception(f"Produto {item['product_id']} não encontrado")
-
-        if product.stock_quantity < item['quantity']:
-            raise Exception(f"Estoque insuficiente para o produto {product.id}")
-
-        subtotal = item['quantity'] * product.price
+    for item in order.items:
+        subtotal = item.quantity * item.unit_price
+        db_item = OrderItem(
+            product_id=item.product_id,
+            quantity=item.quantity,
+            unit_price=item.unit_price,
+            subtotal=subtotal,
+        )
+        # Atualiza estoque do produto
+        product = db.query(Product).filter(Product.id == item.product_id).first()
+        if product:
+            product.stock_quantity -= item.quantity
+            db.add(product)
         total += subtotal
+        db_order.items.append(db_item)
 
-        # Cria item do pedido
-        order_item = OrderItem(
-            product_id=product.id,
-            quantity=item['quantity'],
-            unit_price=product.price,
-            subtotal=subtotal
-        )
-        order_items.append(order_item)
-
-        # Baixa automática do estoque
-        product.stock_quantity -= item['quantity']
-
-        # Registra movimento de estoque
-        stock_movement = StockMovement(
-            product_id=product.id,
-            quantity=item['quantity'],
-            movement_type=StockMovementType.OUT
-        )
-        db.add(stock_movement)
-
-    # Cria pedido
-    order = Order(
-        user_id=user_id,
-        total=total,
-        items=order_items
-    )
-    db.add(order)
+    db_order.total = total
+    db.add(db_order)
     db.commit()
-    db.refresh(order)
-    return order
+    db.refresh(db_order)
+    return db_order
 
 # =========================
 # Atualizar status do pedido
 # =========================
-def update_order_status(db: Session, order_id: str, status: OrderStatus):
+def update_order_status(db: Session, order_id: str, status: OrderStatusUpdate):
     order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise Exception("Pedido não encontrado")
-
-    order.status = status
-    db.commit()
-    db.refresh(order)
+    if order:
+        order.status = status.status
+        db.commit()
+        db.refresh(order)
     return order
 
 # =========================
@@ -70,28 +48,13 @@ def update_order_status(db: Session, order_id: str, status: OrderStatus):
 # =========================
 def delete_order(db: Session, order_id: str):
     order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise Exception("Pedido não encontrado")
-    
-    # Restituir estoque
-    for item in order.items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
-        if product:
-            product.stock_quantity += item.quantity
-            # Movimento de estoque de retorno
-            stock_movement = StockMovement(
-                product_id=product.id,
-                quantity=item.quantity,
-                movement_type=StockMovementType.IN
-            )
-            db.add(stock_movement)
-    
-    db.delete(order)
-    db.commit()
-    return True
+    if order:
+        db.delete(order)
+        db.commit()
+    return {"deleted": True}
 
 # =========================
-# Listar pedidos
+# Listar todos os pedidos
 # =========================
 def list_orders(db: Session):
     return db.query(Order).all()

@@ -19,7 +19,8 @@ from app.routes import (
     users,
     products,
     categories,
-    stock,  # Movimentações de estoque
+    stock,   # Movimentações de estoque
+    orders,    # Pedidos
 )
 
 # ============================
@@ -63,11 +64,13 @@ app.add_middleware(
 # ============================
 # REGISTRAR ROTAS
 # ============================
+# Swagger vai separar pelas tags definidas nos routers
 app.include_router(dashboard.router)
 app.include_router(users.router)
 app.include_router(products.router)
 app.include_router(categories.router)
 app.include_router(stock.router)
+app.include_router(orders.router)  # Pedidos
 
 # ============================
 # DEPENDÊNCIA DB
@@ -96,7 +99,7 @@ def startup_event():
 # ============================
 # HEALTH CHECK
 # ============================
-@app.get("/")
+@app.get("/", tags=["Root"])
 def root():
     return {
         "status": "ok",

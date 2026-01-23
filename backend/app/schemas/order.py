@@ -1,4 +1,3 @@
-# app/schemas/order.py
 from pydantic import BaseModel
 from typing import List
 from enum import Enum
@@ -44,6 +43,22 @@ class Order(BaseModel):
     total: float
     items: List[OrderItem]
     created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+# =========================
+# Atualização do status do pedido
+# =========================
+class OrderStatusUpdate(BaseModel):
+    status: OrderStatus
+
+# =========================
+# Histórico de status do pedido
+# =========================
+class OrderStatusHistory(BaseModel):
+    status: OrderStatus
+    updated_at: datetime
 
     class Config:
         orm_mode = True
