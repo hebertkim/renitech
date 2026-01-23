@@ -92,14 +92,3 @@ def product_to_schema(product) -> Product:
         updated_at=product.updated_at,
         images=[img.image_url for img in getattr(product, "images", [])]
     )
-
-
-# =========================
-# Modelo para filtro de produtos
-# =========================
-class ProductFilter(BaseModel):
-    category_id: Optional[UUID] = None  # Filtro por categoria
-    in_promotion: Optional[bool] = None  # Filtro por promoção (em promoção ou não)
-
-    class Config:
-        orm_mode = True
