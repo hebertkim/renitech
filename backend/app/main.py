@@ -11,7 +11,6 @@ import app.models  # Garante que todos os models sejam carregados
 
 from app.database import Base, engine, wait_for_db, SessionLocal
 
-
 # ============================
 # IMPORTAR ROTAS
 # ============================
@@ -32,24 +31,24 @@ app = FastAPI(
 )
 
 # ============================
-# ✅ SERVIR ARQUIVOS ESTÁTICOS (AVATARS)
+# ✅ SERVIR ARQUIVOS ESTÁTICOS
 # ============================
 
-# Diretório base do backend: app/
+# Diretório base do backend
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# app/assets
+# Pastas existentes (avatars)
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
-
-# app/assets/img/profile
 PROFILE_DIR = os.path.join(ASSETS_DIR, "img", "profile")
-
-# Garante que a pasta exista
 os.makedirs(PROFILE_DIR, exist_ok=True)
-
-# Permite acessar:
-# http://localhost:8000/assets/img/profile/arquivo.png
 app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+
+# Nova pasta para uploads de produtos
+UPLOADS_DIR = os.path.join(BASE_DIR, "static", "uploads")
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+# Agora as imagens podem ser acessadas via:
+# http://localhost:8000/static/uploads/<nome_arquivo>.webp
 
 # ============================
 # ✅ CORS (FRONTEND VUE)
