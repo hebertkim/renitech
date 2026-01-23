@@ -1,48 +1,63 @@
-# app/routes/product.py
-from app import crud, schemas
+# app/routes/products.py
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends
+from typing import List
+from app import crud, schemas
 from app.database import get_db
 
 router = APIRouter()
 
-# Obter todos os produtos
-@router.get("/products/", response_model=list[schemas.Product])
+# =========================
+# OBTER TODOS OS PRODUTOS
+# =========================
+@router.get("/products/", response_model=List[schemas.Product])
 def get_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_products(db=db, skip=skip, limit=limit)
 
-# Obter um produto específico
+# =========================
+# OBTER UM PRODUTO ESPECÍFICO
+# =========================
 @router.get("/products/{product_id}", response_model=schemas.Product)
 def get_product(product_id: str, db: Session = Depends(get_db)):
-    return crud.get_product(db=db, product_id=product_id)
+    db_product = crud.get_product(db=db, product_id=product_id)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return db_product
 
-# Criar um novo produto
+# =========================
+# CRIAR UM NOVO PRODUTO
+# =========================
 @router.post("/products/", response_model=schemas.Product)
 def create_product(product_data: schemas.ProductCreate, db: Session = Depends(get_db)):
     return crud.create_product(db=db, product_data=product_data)
 
-# Atualizar um produto
+# =========================
+# ATUALIZAR UM PRODUTO
+# =========================
 @router.put("/products/{product_id}", response_model=schemas.Product)
 def update_product(
-    product_id: str, product: schemas.ProductUpdate, db: Session = Depends(get_db)
+    product_id: str,
+    product_data: schemas.ProductUpdate,
+    db: Session = Depends(get_db)
 ):
-    return crud.update_product(db=db, product_id=product_id, product=product)
+    db_product = crud.update_product(db=db, product_id=product_id, product_data=product_data)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return db_product
 
-# Excluir um produto
+# =========================
+# EXCLUIR UM PRODUTO
+# =========================
 @router.delete("/products/{product_id}", response_model=schemas.Product)
 def delete_product(product_id: str, db: Session = Depends(get_db)):
-    return crud.delete_product(db=db, product_id=product_id)
+    db_product = crud.delete_product(db=db, product_id=product_id)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return db_product
 
-# Criar SKU para um produto (caso queira tratar o SKU de forma independente)
-# **Agora este endpoint não é mais necessário, pois o SKU já faz parte do modelo Product**
-# @router.post("/products/{product_id}/sku", response_model=schemas.Product)
-# def create_sku_for_product(
-#     product_id: str, sku_data: schemas.SKUCreate, db: Session = Depends(get_db)
-# ):
-#     return crud.create_sku(db=db, product_id=product_id, sku_data=sku_data)
-
-# Obter SKU de um produto (caso esteja tratando isso separadamente)
-# **Não é mais necessário, pois o SKU agora é parte do modelo Product**
-# @router.get("/products/{product_id}/sku", response_model=schemas.SKU)
-# def get_skus_of_product(product_id: str, db: Session = Depends(get_db)):
-#     return crud.get_skus_by_product_id(db=db, product_id=product_id)
+# =========================
+# NOTAS:
+# - SKU já é parte do modelo Product, não é necessário endpoint separado para SKU
+# - Todos os campos ERP (estoque mínimo, promoções, impostos, combos, controle de estoque)
+#   estão inclusos nos schemas ProductCreate/ProductUpdate/Product
+# - Suporte a imagens está pronto via campo 'images' nos schemas
