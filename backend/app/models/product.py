@@ -62,7 +62,7 @@ class ProductImage(Base):
     product_id = Column(String(36), ForeignKey("products.id"))
     image_url = Column(String(500), nullable=False)
 
-    product = relationship("Product", back_populates="images")
+    product = relationship("app.models.product.Product", back_populates="images")
 
 
 # =========================

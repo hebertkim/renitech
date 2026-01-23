@@ -15,10 +15,16 @@ services:
     environment:
       DATABASE_URL: mysql+mysqlconnector://renitech_user:user123@db:3306/renitech_db
     volumes:
-      # 🔥 Volume para arquivos estáticos (avatars, uploads, etc)
+      # 🔥 Hot reload do código backend
+      - ./backend/app:/app/app
+      - ./backend/requirements.txt:/app/requirements.txt
+      # 🔥 Arquivos estáticos (uploads, avatars, etc)
       - ./assets:/app/assets
     networks:
       - renitech-net
+    # Rodar FastAPI com Hot Reload
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   # ===============================
   # Banco de Dados (MySQL)
@@ -49,7 +55,10 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_USEPOLLING=true  # Hot reload no WSL/Windows
+    volumes:
+      - ./frontend:/app           # 🔥 Hot reload do frontend
+      - /app/node_modules         # Evita sobrescrever node_modules
     command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
     depends_on:
       - api
@@ -57,13 +66,13 @@ services:
       - renitech-net
 
 # ===============================
-# Volumes
+# Volumes persistentes
 # ===============================
 volumes:
   renitech_db_data:
 
 # ===============================
-# Network
+# Network interna
 # ===============================
 networks:
   renitech-net:
