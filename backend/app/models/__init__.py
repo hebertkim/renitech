@@ -2,4 +2,4 @@
 from .user import User
 from .product import Product
 from .category import ProductCategory
-# Adicione outros models conforme necessário
+from .stock import StockMovement

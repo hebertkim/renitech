@@ -1,16 +1,16 @@
 # app/models/product.py
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Column, String, Float, DateTime, Boolean, ForeignKey, Numeric
-from app.database import Base, get_db
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from app.database import Base, get_db
+from PIL import Image
 import uuid
 import os
 import hashlib
-from PIL import Image
 
+# Diretório para upload de imagens
 UPLOAD_DIR = "static/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -43,7 +43,11 @@ class Product(Base):
     pis = Column(Numeric(10, 2), nullable=True)
     cofins = Column(Numeric(10, 2), nullable=True)
 
+    # Relação com imagens
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
+
+    # Relação com estoque
+    stock_movements = relationship("StockMovement", back_populates="product")
 
 
 # =========================
@@ -64,8 +68,9 @@ class ProductImage(Base):
 # =========================
 router = APIRouter(prefix="/products", tags=["Products"])
 
-
-# Adicionar imagem
+# -------------------------
+# Upload de imagem
+# -------------------------
 @router.post("/{product_id}/images")
 async def upload_product_image(
     product_id: str,
@@ -95,7 +100,9 @@ async def upload_product_image(
     return JSONResponse({"id": product_image.id, "image_url": product_image.image_url})
 
 
+# -------------------------
 # Listar imagens do produto
+# -------------------------
 @router.get("/{product_id}/images")
 def list_product_images(product_id: str, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()
@@ -104,7 +111,9 @@ def list_product_images(product_id: str, db: Session = Depends(get_db)):
     return [{"id": img.id, "image_url": img.image_url} for img in product.images]
 
 
+# -------------------------
 # Remover imagem
+# -------------------------
 @router.delete("/images/{image_id}")
 def delete_product_image(image_id: str, db: Session = Depends(get_db)):
     image = db.query(ProductImage).filter(ProductImage.id == image_id).first()

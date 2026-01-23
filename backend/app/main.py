@@ -1,3 +1,4 @@
+# main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +20,7 @@ from app.routes import (
     users,
     products,
     categories,
+    stock,  # Novo módulo de estoque
 )
 
 # ============================
@@ -43,10 +45,13 @@ PROFILE_DIR = os.path.join(ASSETS_DIR, "img", "profile")
 os.makedirs(PROFILE_DIR, exist_ok=True)
 app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 
-# Nova pasta para uploads de produtos
-UPLOADS_DIR = os.path.join(BASE_DIR, "static", "uploads")
+# Pasta para uploads de produtos
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+UPLOADS_DIR = os.path.join(STATIC_DIR, "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+
+# Monta diretório estático
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # Agora as imagens podem ser acessadas via:
 # http://localhost:8000/static/uploads/<nome_arquivo>.webp
 
@@ -66,8 +71,9 @@ app.add_middleware(
 # ============================
 app.include_router(dashboard.router)
 app.include_router(users.router)
-app.include_router(products.router)  # Rota de produtos
-app.include_router(categories.router)  # Rota de categorias
+app.include_router(products.router)  # Produtos + imagens
+app.include_router(categories.router)  # Categorias
+app.include_router(stock.router)  # Movimentações de estoque
 
 # ============================
 # DEPENDÊNCIA DB
