@@ -130,4 +130,30 @@ def delete_product_image(image_id: str, db: Session = Depends(get_db)):
     db.commit()
     return JSONResponse({"detail": "Image deleted"})
 
-stock_movements = relationship("StockMovement", back_populates="product")
+
+# -------------------------
+# Filtro de Produtos
+# -------------------------
+@router.get("/")
+def get_filtered_products(
+    db: Session = Depends(get_db),
+    category_id: str = None,
+    in_promotion: bool = None,
+    skip: int = 0,
+    limit: int = 100
+):
+    query = db.query(Product)
+
+    # Filtro por categoria
+    if category_id:
+        query = query.filter(Product.category_id == category_id)
+
+    # Filtro por produtos em promoção
+    if in_promotion is not None:
+        if in_promotion:
+            query = query.filter(Product.show_in_promotion == True).filter(Product.price_promotion != None)
+        else:
+            query = query.filter((Product.show_in_promotion == False) | (Product.price_promotion == None))
+
+    # Paginação
+    return query.offset(skip).limit(limit).all()

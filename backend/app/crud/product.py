@@ -36,12 +36,23 @@ def create_product(db: Session, product_data: schemas.ProductCreate):
 # =========================
 # READ
 # =========================
+
 def get_product(db: Session, product_id: str):
     return db.query(Product).filter(Product.id == product_id).first()
 
+def get_products(db: Session, skip: int = 0, limit: int = 100, filters: schemas.ProductFilter = None):
+    query = db.query(Product)
 
-def get_products(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Product).offset(skip).limit(limit).all()
+    if filters:
+        if filters.category_id:
+            query = query.filter(Product.category_id == filters.category_id)
+        if filters.in_promotion is not None:
+            if filters.in_promotion:
+                query = query.filter(Product.show_in_promotion == True).filter(Product.price_promotion.isnot(None))
+            else:
+                query = query.filter(Product.show_in_promotion == False).filter(Product.price_promotion.is_(None))
+
+    return query.offset(skip).limit(limit).all()
 
 
 # =========================

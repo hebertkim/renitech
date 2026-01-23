@@ -1,10 +1,10 @@
 # app/routes/products.py
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app import crud
 from app.database import get_db
-from app.schemas.product import Product, ProductCreate, ProductUpdate, product_to_schema
+from app.schemas.product import Product, ProductCreate, ProductUpdate, ProductFilter, product_to_schema
 from app.models.product import ProductImage
 import os
 import hashlib
@@ -22,10 +22,19 @@ router = APIRouter(prefix="/products", tags=["Products"])
 # PRODUTOS CRUD
 # =========================
 
-# OBTER TODOS OS PRODUTOS
+# OBTER TODOS OS PRODUTOS (Com filtros de categoria e promoção)
 @router.get("/products/", response_model=List[Product])
-def get_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    products = crud.get_products(db=db, skip=skip, limit=limit)
+def get_products(
+    skip: int = 0, 
+    limit: int = 100, 
+    category_id: Optional[str] = None,  # Filtro por categoria
+    in_promotion: Optional[bool] = None,  # Filtro por promoção
+    db: Session = Depends(get_db)
+):
+    # Aplica os filtros de categoria e promoção
+    filters = ProductFilter(category_id=category_id, in_promotion=in_promotion)
+
+    products = crud.get_products(db=db, skip=skip, limit=limit, filters=filters)
     return [product_to_schema(p) for p in products]
 
 # OBTER UM PRODUTO ESPECÍFICO
