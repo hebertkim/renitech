@@ -1,3 +1,5 @@
+# app/routes/users.py
+
 from fastapi import UploadFile, File
 import hashlib
 from fastapi import APIRouter, Depends, HTTPException, status, Form
@@ -36,7 +38,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 # JWT configuration
 # ==============================
 
-
 SECRET_KEY = os.getenv("SECRET_KEY", "sua_chave_secreta_aqui")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -47,8 +48,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (
-        expires_delta if expires_delta else timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expires_delta if expires_delta else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -56,7 +56,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 # ==============================
 # Dependency: Get current user
 # ==============================
-
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -76,7 +75,8 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    # ✅ UUID É STRING — NÃO CONVERTER PARA INT
+    user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_exception
 
@@ -86,20 +86,17 @@ def get_current_user(
 # DIRETÓRIO REAL DE UPLOAD
 # ==============================
 
-
-BASE_DIR = os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AVATAR_DIR = os.path.join(BASE_DIR, "assets", "img", "profile")
 os.makedirs(AVATAR_DIR, exist_ok=True)
 
 MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5MB
 ALLOWED_TYPES = ["jpeg", "png", "gif", "bmp", "webp"]
-AVATAR_MAX_DIM = (512, 512)  # Redimensionar para no máximo 512x512
+AVATAR_MAX_DIM = (512, 512)
 
 # ==============================
 # CRUD
 # ==============================
-
 
 @router.post("/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -127,7 +124,6 @@ def get_users(db: Session = Depends(get_db)):
 # CURRENT USER
 # ==============================
 
-
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
@@ -153,9 +149,8 @@ def update_me(
     return current_user
 
 # ==============================
-# UPLOAD DE AVATAR COM REDIMENSIONAMENTO E WEBP
+# UPLOAD DE AVATAR
 # ==============================
-
 
 @router.post("/me/avatar", response_model=UserResponse)
 def upload_avatar(
@@ -165,21 +160,16 @@ def upload_avatar(
 ):
     content = file.file.read()
     if len(content) > MAX_AVATAR_SIZE:
-        raise HTTPException(
-            status_code=400,
-            detail="Arquivo muito grande. Máx 5MB.")
+        raise HTTPException(status_code=400, detail="Arquivo muito grande. Máx 5MB.")
 
     try:
         image = Image.open(io.BytesIO(content))
     except Exception:
-        raise HTTPException(
-            status_code=400,
-            detail="Arquivo não é uma imagem válida.")
+        raise HTTPException(status_code=400, detail="Arquivo não é uma imagem válida.")
 
-    # Redimensiona mantendo proporção
     image.thumbnail(AVATAR_MAX_DIM)
 
-    # Deleta avatar antigo se existir
+    # Deleta avatar antigo
     if current_user.avatar:
         old_path = os.path.join(BASE_DIR, current_user.avatar.lstrip("/"))
         if os.path.exists(old_path):
@@ -187,11 +177,9 @@ def upload_avatar(
 
     # Hash único
     file_hash = hashlib.sha256(
-        (str(current_user.id) + file.filename + str(
-            datetime.utcnow())).encode()
+        (str(current_user.id) + file.filename + str(datetime.utcnow())).encode()
     ).hexdigest()
 
-    # Salva em WebP
     filename = f"{file_hash}.webp"
     file_path = os.path.join(AVATAR_DIR, filename)
     image.save(file_path, "WEBP", quality=90)
@@ -207,9 +195,8 @@ def upload_avatar(
 # BY ID
 # ==============================
 
-
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(user_id: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
@@ -218,7 +205,6 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 # ==============================
 # LOGIN
 # ==============================
-
 
 @router.post("/login", response_model=Token)
 def login(
