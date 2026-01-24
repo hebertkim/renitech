@@ -1,8 +1,12 @@
+# app/database.py
+
 import os
 import time
+from typing import Generator
+
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 # ============================
 # Configurações de ambiente
@@ -14,31 +18,44 @@ DB_USER = os.getenv("DB_USER", "renitech_user")
 DB_PASS = os.getenv("DB_PASS", "user123")
 DB_NAME = os.getenv("DB_NAME", "renitech_db")
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = (
+    f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
 
 # ============================
-# SQLAlchemy
+# SQLAlchemy Engine
 # ============================
 
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
     pool_recycle=3600,
+    future=True,
 )
 
+# ============================
+# Session
+# ============================
+
 SessionLocal = sessionmaker(
+    bind=engine,
     autocommit=False,
     autoflush=False,
-    bind=engine
+    expire_on_commit=False,
 )
+
+# ============================
+# Base central do projeto
+# ============================
 
 Base = declarative_base()
 
 # ============================
-# Dependency para FastAPI
+# Dependency do FastAPI
 # ============================
 
-def get_db():
+
+def get_db() -> Generator:
     db = SessionLocal()
     try:
         yield db
@@ -49,7 +66,8 @@ def get_db():
 # Esperar o banco subir
 # ============================
 
-def wait_for_db(max_retries: int = 60, delay: int = 2):
+
+def wait_for_db(max_retries: int = 60, delay: int = 2) -> None:
     print("⏳ Aguardando banco de dados...")
 
     for attempt in range(max_retries):
@@ -59,7 +77,10 @@ def wait_for_db(max_retries: int = 60, delay: int = 2):
             print("✅ Banco de dados disponível!")
             return
         except OperationalError:
-            print(f"⏳ Tentativa {attempt+1}/{max_retries} - banco ainda não disponível...")
+            print(
+                f"⏳ Tentativa {attempt + 1}/{max_retries} - "
+                "banco ainda não disponível..."
+            )
             time.sleep(delay)
 
-    raise Exception("❌ Banco de dados não ficou disponível a tempo")
+    raise RuntimeError("❌ Banco de dados não ficou disponível a tempo")

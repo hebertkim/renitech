@@ -11,11 +11,10 @@ import enum
 # Status do pedido
 # =========================
 class OrderStatus(str, enum.Enum):
-    PENDING = "PENDING"
-    PAID = "PAID"
-    CANCELED = "CANCELED"
-    SHIPPED = "SHIPPED"
-    FINISHED = "FINISHED"
+    PENDING = "Pendente"
+    PAID = "Pago"
+    SHIPPED = "Enviado"
+    CANCELLED = "Cancelado"
 
 
 # =========================
@@ -27,24 +26,47 @@ class Order(Base):
     id = Column(
         String(36),
         primary_key=True,
-        default=lambda: str(
-            uuid.uuid4()))
+        default=lambda: str(uuid.uuid4()),
+        index=True
+    )
 
-    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
-    customer_id = Column(String(36), ForeignKey("customers.id"), nullable=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
 
-    total = Column(Float, default=0.0)
-    status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
+    customer_id = Column(
+        String(36),
+        ForeignKey("customers.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    total = Column(Float, default=0.0, nullable=False)
+
+    status = Column(
+        Enum(OrderStatus, name="order_status_enum"),
+        default=OrderStatus.PENDING,
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
 
     # =========================
     # Relacionamentos
     # =========================
+
     items = relationship(
         "OrderItem",
         back_populates="order",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     customer = relationship(
@@ -62,19 +84,22 @@ class OrderItem(Base):
     id = Column(
         String(36),
         primary_key=True,
-        default=lambda: str(
-            uuid.uuid4()))
+        default=lambda: str(uuid.uuid4()),
+        index=True
+    )
 
     order_id = Column(
         String(36),
         ForeignKey("orders.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     product_id = Column(
         String(36),
-        ForeignKey("products.id"),
-        nullable=False
+        ForeignKey("products.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True
     )
 
     quantity = Column(Float, nullable=False)
@@ -84,6 +109,7 @@ class OrderItem(Base):
     # =========================
     # Relacionamentos
     # =========================
+
     order = relationship(
         "Order",
         back_populates="items"

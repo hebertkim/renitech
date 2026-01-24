@@ -1,12 +1,14 @@
-from pydantic import BaseModel
+# app/schemas/order.py
+
+from pydantic import BaseModel, Field
 from typing import List
 from enum import Enum
 from datetime import datetime
+from uuid import UUID
 
 # =========================
 # Status do pedido
 # =========================
-
 
 class OrderStatus(str, Enum):
     PENDING = "Pendente"
@@ -14,63 +16,75 @@ class OrderStatus(str, Enum):
     SHIPPED = "Enviado"
     CANCELLED = "Cancelado"
 
+
 # =========================
 # Item do pedido
 # =========================
 
-
 class OrderItemCreate(BaseModel):
-    product_id: str
+    product_id: UUID
     quantity: float
 
 
-class OrderItem(BaseModel):
-    id: str
-    product_id: str
+class OrderItemResponse(BaseModel):
+    id: UUID
+    product_id: UUID
     quantity: float
     unit_price: float
     subtotal: float
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
+
 
 # =========================
 # Pedido
 # =========================
 
-
 class OrderCreate(BaseModel):
-    user_id: str
+    user_id: UUID
     items: List[OrderItemCreate]
 
 
-class Order(BaseModel):
-    id: str
-    user_id: str
+class OrderResponse(BaseModel):
+    id: UUID
+    user_id: UUID
     status: OrderStatus
     total: float
-    items: List[OrderItem]
+    items: List[OrderItemResponse]
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
+
 
 # =========================
 # Atualização do status do pedido
 # =========================
 
-
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
 
 # =========================
 # Histórico de status do pedido
 # =========================
 
-
 class OrderStatusHistory(BaseModel):
     status: OrderStatus
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
+
+
+# =========================
+# 🔥 ALIAS DE COMPATIBILIDADE
+# =========================
+
+# Permite: from app.schemas.order import Order
+Order = OrderResponse
+OrderItem = OrderItemResponse

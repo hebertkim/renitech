@@ -1,5 +1,6 @@
 # app/schemas/product.py
-from pydantic import BaseModel
+
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
@@ -8,20 +9,25 @@ from datetime import datetime
 # Base do Produto
 # =========================
 
-
 class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
     price: float
     sku: str
+
     stock_quantity: float
-    stock_minimum: Optional[float] = 0  # Estoque mínimo
-    price_promotion: Optional[float] = None  # Preço promocional
+    stock_minimum: Optional[float] = 0
+
+    price_promotion: Optional[float] = None
+
     is_active: bool = True
-    is_combo: bool = False  # Indica se é combo
-    show_in_promotion: bool = False  # Exibir em promoções
-    no_stock_control: bool = False  # Produto sem controle de estoque
-    category_id: Optional[UUID] = None  # Categoria do produto
+    is_combo: bool = False
+    show_in_promotion: bool = False
+    no_stock_control: bool = False
+
+    category_id: Optional[UUID] = None
+
+    # Impostos
     icms: Optional[float] = None
     ipi: Optional[float] = None
     pis: Optional[float] = None
@@ -31,48 +37,62 @@ class ProductBase(BaseModel):
 # =========================
 # Modelo para criação
 # =========================
+
 class ProductCreate(ProductBase):
-    # Para criação, podemos enviar URLs iniciais (opcional)
-    images: Optional[List[str]] = []
+    images: Optional[List[str]] = Field(default_factory=list)
 
 
 # =========================
 # Modelo para atualização
 # =========================
+
 class ProductUpdate(ProductBase):
-    images: Optional[List[str]] = []  # Permite atualizar imagens
+    images: Optional[List[str]] = Field(default_factory=list)
 
 
 # =========================
-# Modelo de imagem (para retorno)
+# Modelo de imagem (interno)
 # =========================
+
 class ProductImageSchema(BaseModel):
     id: UUID
     image_url: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # =========================
-# Modelo para leitura
+# Modelo para leitura (response)
 # =========================
-class Product(ProductBase):
+
+class ProductResponse(ProductBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
-    # Retorna somente URLs das imagens
-    images: Optional[List[str]] = []
 
-    class Config:
-        orm_mode = True
+    images: List[str] = Field(default_factory=list)
+
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # =========================
-# Função auxiliar para converter Product + imagens do ORM para schema
+# 🔥 ALIAS PARA COMPATIBILIDADE COM AS ROTAS
 # =========================
-def product_to_schema(product) -> Product:
-    return Product(
+
+# Agora: from app.schemas.product import Product FUNCIONA
+Product = ProductResponse
+
+
+# =========================
+# Função auxiliar ORM -> Schema
+# =========================
+
+def product_to_schema(product) -> ProductResponse:
+    return ProductResponse(
         id=product.id,
         name=product.name,
         description=product.description,
@@ -92,5 +112,5 @@ def product_to_schema(product) -> Product:
         cofins=product.cofins,
         created_at=product.created_at,
         updated_at=product.updated_at,
-        images=[img.image_url for img in getattr(product, "images", [])]
+        images=[img.image_url for img in getattr(product, "images", []) or []],
     )

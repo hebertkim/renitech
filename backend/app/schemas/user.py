@@ -1,6 +1,9 @@
+# app/schemas/user.py
+
 from pydantic import BaseModel, EmailStr, model_validator
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 # ============================
 # --- Schemas base ---
@@ -35,7 +38,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
 
-    # ✅ Avatar é opcional (não quebra nada)
+    # ✅ Avatar é opcional
     avatar: Optional[str] = None
 
 
@@ -43,7 +46,7 @@ class UserUpdate(BaseModel):
 # --- Schema de resposta ---
 # ============================
 class UserResponse(UserBase):
-    id: int
+    id: UUID
     balance: float
     created_at: datetime
 
