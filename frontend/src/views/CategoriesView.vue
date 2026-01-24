@@ -1,6 +1,12 @@
-<!-- src/views/CategoriesView.vue -->
 <template>
-  <div class="p-6">
+  <MainLayout>
+  <div class="p-6 relative">
+    <!-- Spinner com overlay -->
+    <div v-if="loading" class="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+      <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+      <span class="ml-2 text-blue-600 font-semibold">Carregando categorias...</span>
+    </div>
+
     <h1 class="text-2xl font-bold mb-4">Gerenciar Categorias</h1>
 
     <!-- Formulário de criação/edição -->
@@ -11,49 +17,24 @@
       <form @submit.prevent="saveCategory">
         <div class="mb-2">
           <label class="block mb-1 font-medium">Nome</label>
-          <input
-            v-model="categoryForm.name"
-            type="text"
-            class="w-full border rounded px-2 py-1"
-            required
-          />
+          <input v-model="categoryForm.name" type="text" class="w-full border rounded px-2 py-1" required />
         </div>
         <div class="mb-2">
           <label class="block mb-1 font-medium">Código</label>
-          <input
-            v-model="categoryForm.code"
-            type="text"
-            class="w-full border rounded px-2 py-1"
-          />
+          <input v-model="categoryForm.code" type="text" class="w-full border rounded px-2 py-1" />
         </div>
         <div class="mb-2">
           <label class="block mb-1 font-medium">Descrição</label>
-          <textarea
-            v-model="categoryForm.description"
-            class="w-full border rounded px-2 py-1"
-            rows="2"
-          ></textarea>
+          <textarea v-model="categoryForm.description" class="w-full border rounded px-2 py-1" rows="2"></textarea>
         </div>
         <div class="mb-2 flex items-center gap-2">
-          <input
-            type="checkbox"
-            v-model="categoryForm.is_active"
-            id="isActive"
-          />
+          <input type="checkbox" v-model="categoryForm.is_active" id="isActive" />
           <label for="isActive">Ativa</label>
         </div>
-        <button
-          type="submit"
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
           {{ editMode ? 'Atualizar' : 'Criar' }}
         </button>
-        <button
-          v-if="editMode"
-          type="button"
-          @click="cancelEdit"
-          class="ml-2 px-4 py-2 rounded border hover:bg-gray-100"
-        >
+        <button v-if="editMode" type="button" @click="cancelEdit" class="ml-2 px-4 py-2 rounded border hover:bg-gray-100">
           Cancelar
         </button>
       </form>
@@ -77,39 +58,30 @@
             <td class="border px-2 py-1">{{ cat.code }}</td>
             <td class="border px-2 py-1">{{ cat.is_active ? 'Sim' : 'Não' }}</td>
             <td class="border px-2 py-1">
-              <button
-                @click="editCategory(cat)"
-                class="text-blue-600 hover:underline mr-2"
-              >
-                Editar
-              </button>
-              <button
-                @click="deleteCategory(cat.id)"
-                class="text-red-600 hover:underline"
-              >
-                Excluir
-              </button>
+              <button @click="editCategory(cat)" class="text-blue-600 hover:underline mr-2">Editar</button>
+              <button @click="deleteCategory(cat.id)" class="text-red-600 hover:underline">Excluir</button>
             </td>
           </tr>
-          <tr v-if="categories.length === 0">
-            <td colspan="4" class="text-center py-2 text-gray-500">
-              Nenhuma categoria cadastrada
-            </td>
+          <tr v-if="categories.length === 0 && !loading">
+            <td colspan="4" class="text-center py-2 text-gray-500">Nenhuma categoria cadastrada</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+  </MainLayout>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { useCategoryStore } from '@/stores/category'
+import MainLayout from '@/layouts/MainLayout.vue'
 
 const categoryStore = useCategoryStore()
 
 const categories = ref([])
 const editMode = ref(false)
+const loading = ref(true)  // spinner
 const categoryForm = reactive({
   id: null,
   name: '',
@@ -118,9 +90,20 @@ const categoryForm = reactive({
   is_active: true,
 })
 
-// Carregar categorias ao montar
+// Função para carregar categorias com delay mínimo de 3s
 const loadCategories = async () => {
+  loading.value = true
+  const start = Date.now()
+  
   categories.value = await categoryStore.fetchCategories()
+  
+  const elapsed = Date.now() - start
+  const remaining = 3000 - elapsed  // 3000ms = 3s
+  if (remaining > 0) {
+    await new Promise(resolve => setTimeout(resolve, remaining))
+  }
+
+  loading.value = false
 }
 
 onMounted(loadCategories)
@@ -167,10 +150,3 @@ const deleteCategory = async (id) => {
   await loadCategories()
 }
 </script>
-
-<style scoped>
-table th,
-table td {
-  border: 1px solid #ddd;
-}
-</style>
