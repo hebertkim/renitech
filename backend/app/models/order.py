@@ -24,7 +24,11 @@ class OrderStatus(str, enum.Enum):
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(
+            uuid.uuid4()))
 
     user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     customer_id = Column(String(36), ForeignKey("customers.id"), nullable=True)
@@ -55,7 +59,11 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_items"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(
+            uuid.uuid4()))
 
     order_id = Column(
         String(36),
