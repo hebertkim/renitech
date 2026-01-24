@@ -1,7 +1,8 @@
 # flake8: noqa
 
-# Garante que todos os models sejam importados
 from .user import User
 from .product import Product
+from .product_image import ProductImage
 from .category import ProductCategory
-from .stock import StockMovement
+from .stock import StockMovement, StockMovementType
+from .order import Order

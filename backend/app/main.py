@@ -7,7 +7,7 @@ import os
 # ============================
 # IMPORTANTE: garante que todos os models sejam registrados
 # ============================
-import app.models as _  # registra todos os models, sem uso direto
+from app import models  # noqa: F401
 
 from app.database import Base, engine, wait_for_db, SessionLocal
 
@@ -29,7 +29,7 @@ from app.routes import (
 app = FastAPI(
     title="Renitech API",
     version="1.0.0",
-    description="API para o sistema e-commerce Renitech"
+    description="API para o sistema e-commerce Renitech",
 )
 
 # ============================

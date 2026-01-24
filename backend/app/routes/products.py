@@ -10,7 +10,8 @@ from app.schemas.product import (
     ProductUpdate,
     product_to_schema
 )
-from app.models.product import ProductImage
+from app.models.product_image import ProductImage
+
 import os
 import hashlib
 from PIL import Image  # Certifique-se de ter 'pillow' instalado na venv

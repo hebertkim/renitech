@@ -1,16 +1,13 @@
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 from app.database import Base
-from datetime import datetime
-
+import uuid
 
 class Customer(Base):
-    __tablename__ = 'customers'
+    __tablename__ = "customers"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    email = Column(String(255), unique=True)
 
-    # Caso queira um relacionamento com o modelo de pedidos (por exemplo)
     orders = relationship("Order", back_populates="customer")
