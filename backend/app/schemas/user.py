@@ -5,6 +5,8 @@ from datetime import datetime
 # ============================
 # --- Schemas base ---
 # ============================
+
+
 class UserBase(BaseModel):
     name: str
     email: EmailStr

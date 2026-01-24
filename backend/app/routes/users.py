@@ -24,8 +24,10 @@ router = APIRouter(prefix="/users", tags=["Users"])
 # ==============================
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
@@ -33,16 +35,20 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 # ==============================
 # JWT configuration
 # ==============================
+
+
 SECRET_KEY = os.getenv("SECRET_KEY", "sua_chave_secreta_aqui")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
+
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (
-        expires_delta if expires_delta else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expires_delta if expires_delta else timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -50,6 +56,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 # ==============================
 # Dependency: Get current user
 # ==============================
+
+
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -77,7 +85,10 @@ def get_current_user(
 # ==============================
 # DIRETÓRIO REAL DE UPLOAD
 # ==============================
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+BASE_DIR = os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)))
 AVATAR_DIR = os.path.join(BASE_DIR, "assets", "img", "profile")
 os.makedirs(AVATAR_DIR, exist_ok=True)
 
@@ -88,6 +99,8 @@ AVATAR_MAX_DIM = (512, 512)  # Redimensionar para no máximo 512x512
 # ==============================
 # CRUD
 # ==============================
+
+
 @router.post("/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == user.email).first():
@@ -105,6 +118,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
+
 @router.get("/", response_model=List[UserResponse])
 def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
@@ -112,9 +126,12 @@ def get_users(db: Session = Depends(get_db)):
 # ==============================
 # CURRENT USER
 # ==============================
+
+
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
 
 @router.put("/me", response_model=UserResponse)
 def update_me(
@@ -138,6 +155,8 @@ def update_me(
 # ==============================
 # UPLOAD DE AVATAR COM REDIMENSIONAMENTO E WEBP
 # ==============================
+
+
 @router.post("/me/avatar", response_model=UserResponse)
 def upload_avatar(
     file: UploadFile = File(...),
@@ -146,12 +165,16 @@ def upload_avatar(
 ):
     content = file.file.read()
     if len(content) > MAX_AVATAR_SIZE:
-        raise HTTPException(status_code=400, detail="Arquivo muito grande. Máx 5MB.")
+        raise HTTPException(
+            status_code=400,
+            detail="Arquivo muito grande. Máx 5MB.")
 
     try:
         image = Image.open(io.BytesIO(content))
     except Exception:
-        raise HTTPException(status_code=400, detail="Arquivo não é uma imagem válida.")
+        raise HTTPException(
+            status_code=400,
+            detail="Arquivo não é uma imagem válida.")
 
     # Redimensiona mantendo proporção
     image.thumbnail(AVATAR_MAX_DIM)
@@ -164,7 +187,8 @@ def upload_avatar(
 
     # Hash único
     file_hash = hashlib.sha256(
-        (str(current_user.id) + file.filename + str(datetime.utcnow())).encode()
+        (str(current_user.id) + file.filename + str(
+            datetime.utcnow())).encode()
     ).hexdigest()
 
     # Salva em WebP
@@ -182,6 +206,8 @@ def upload_avatar(
 # ==============================
 # BY ID
 # ==============================
+
+
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
@@ -192,6 +218,8 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 # ==============================
 # LOGIN
 # ==============================
+
+
 @router.post("/login", response_model=Token)
 def login(
     db: Session = Depends(get_db),

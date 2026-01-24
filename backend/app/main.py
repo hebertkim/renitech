@@ -1,12 +1,13 @@
+# app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 
 # ============================
-# 🔥 IMPORTANTE: garante que TODOS os models sejam registrados
+# IMPORTANTE: garante que todos os models sejam registrados
 # ============================
-import app.models  # Todos os models carregados
+import app.models as _  # registra todos os models, sem uso direto
 
 from app.database import Base, engine, wait_for_db, SessionLocal
 
@@ -14,12 +15,12 @@ from app.database import Base, engine, wait_for_db, SessionLocal
 # IMPORTAR ROTAS
 # ============================
 from app.routes import (
-    dashboard,
-    users,
-    products,
-    categories,
-    stock,   # Movimentações de estoque
-    orders,    # Pedidos
+    dashboard as dashboard_routes,
+    users as users_routes,
+    products as products_routes,
+    categories as categories_routes,
+    stock as stock_routes,
+    orders as orders_routes,
 )
 
 # ============================
@@ -32,11 +33,10 @@ app = FastAPI(
 )
 
 # ============================
-# ✅ SERVIR ARQUIVOS ESTÁTICOS
+# SERVIR ARQUIVOS ESTÁTICOS
 # ============================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Diretórios para avatars e uploads
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 PROFILE_DIR = os.path.join(ASSETS_DIR, "img", "profile")
 os.makedirs(PROFILE_DIR, exist_ok=True)
@@ -45,12 +45,11 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 UPLOADS_DIR = os.path.join(STATIC_DIR, "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
-# Montagem
 app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # ============================
-# ✅ CORS (FRONTEND VUE)
+# CORS (FRONTEND VUE)
 # ============================
 app.add_middleware(
     CORSMiddleware,
@@ -63,17 +62,18 @@ app.add_middleware(
 # ============================
 # REGISTRAR ROTAS
 # ============================
-# Swagger vai separar pelas tags definidas nos routers
-app.include_router(dashboard.router)
-app.include_router(users.router)
-app.include_router(products.router)
-app.include_router(categories.router)
-app.include_router(stock.router)
-app.include_router(orders.router)  # Pedidos
+app.include_router(dashboard_routes.router)
+app.include_router(users_routes.router)
+app.include_router(products_routes.router)
+app.include_router(categories_routes.router)
+app.include_router(stock_routes.router)
+app.include_router(orders_routes.router)
 
 # ============================
 # DEPENDÊNCIA DB
 # ============================
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -84,24 +84,23 @@ def get_db():
 # ============================
 # STARTUP
 # ============================
+
+
 @app.on_event("startup")
 def startup_event():
-    print("⏳ Aguardando banco de dados...")
+    print("Aguardando banco de dados...")
     wait_for_db()
-    print("✅ Banco conectado!")
+    print("Banco conectado!")
 
-    print("📦 Criando tabelas...")
+    print("Criando tabelas...")
     Base.metadata.create_all(bind=engine)
 
-    print("🚀 API pronta para uso!")
+    print("API pronta para uso!")
+
 
 # ============================
 # HEALTH CHECK
 # ============================
 @app.get("/", tags=["Root"])
 def root():
-    return {
-        "status": "ok",
-        "message": "Renitech API rodando",
-        "docs": "/docs"
-    }
+    return {"status": "ok", "message": "Renitech API rodando", "docs": "/docs"}

@@ -7,6 +7,8 @@ from app.schemas import product as product_schemas
 # =========================
 # Base da categoria
 # =========================
+
+
 class ProductCategoryBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -16,18 +18,24 @@ class ProductCategoryBase(BaseModel):
 # =========================
 # Modelo para criação
 # =========================
+
+
 class ProductCategoryCreate(ProductCategoryBase):
     pass
 
 # =========================
 # Modelo para atualização
 # =========================
+
+
 class ProductCategoryUpdate(ProductCategoryBase):
     pass
 
 # =========================
 # Modelo para leitura
 # =========================
+
+
 class ProductCategory(ProductCategoryBase):
     id: UUID
     created_at: datetime

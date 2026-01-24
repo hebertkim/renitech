@@ -7,6 +7,8 @@ from datetime import datetime
 # =========================
 # Base do Produto
 # =========================
+
+
 class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None

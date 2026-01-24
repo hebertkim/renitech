@@ -1,6 +1,6 @@
 # app/routes/stock.py
 from typing import List
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -12,6 +12,7 @@ from app.crud import stock as crud
 # ==============================
 router = APIRouter(prefix="/stocks", tags=["Stocks"])
 
+
 # =========================
 # Adicionar entrada de estoque
 # =========================
@@ -22,7 +23,10 @@ def add_stock_route(
     db: Session = Depends(get_db)
 ):
     if stock_data.movement_type != "IN":
-        raise HTTPException(status_code=400, detail="Use 'OUT' movement_type for removal")
+        raise HTTPException(
+            status_code=400,
+            detail="Use 'OUT' movement_type for removal"
+        )
 
     movement = crud.add_stock(
         db=db,
@@ -30,6 +34,7 @@ def add_stock_route(
         quantity=stock_data.quantity
     )
     return movement
+
 
 # =========================
 # Remover estoque (saída)
@@ -41,7 +46,10 @@ def remove_stock_route(
     db: Session = Depends(get_db)
 ):
     if stock_data.movement_type != "OUT":
-        raise HTTPException(status_code=400, detail="Use 'IN' movement_type for addition")
+        raise HTTPException(
+            status_code=400,
+            detail="Use 'IN' movement_type for addition"
+        )
 
     movement = crud.remove_stock(
         db=db,
@@ -49,6 +57,7 @@ def remove_stock_route(
         quantity=stock_data.quantity
     )
     return movement
+
 
 # =========================
 # Listar movimentos de estoque

@@ -6,6 +6,8 @@ from typing import Optional
 # =========================
 # Base do Cliente
 # =========================
+
+
 class CustomerBase(BaseModel):
     name: str
     email: str
@@ -15,18 +17,24 @@ class CustomerBase(BaseModel):
 # =========================
 # Modelo para criação
 # =========================
+
+
 class CustomerCreate(CustomerBase):
     pass
 
 # =========================
 # Modelo para atualização
 # =========================
+
+
 class CustomerUpdate(CustomerBase):
     pass
 
 # =========================
 # Modelo de leitura
 # =========================
+
+
 class Customer(CustomerBase):
     id: int
     created_at: datetime

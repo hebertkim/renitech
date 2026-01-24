@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from app.models.product import Product
 from app.models.category import ProductCategory
 from app.models.order import Order
-from app.models.customer import Customer  # Certifique-se que Customer existe
-from app.models.product import Product  # Para verificar estoque
+from app.models.customer import Customer
+
 
 def get_dashboard_data(db: Session):
     total_products = db.query(Product).count()

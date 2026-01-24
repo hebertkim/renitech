@@ -7,12 +7,17 @@ import uuid
 # =========================
 # ProductCategory
 # =========================
+
+
 class ProductCategory(Base):
     __tablename__ = "product_categories"
 
     # Identificador único da categoria
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-
+    id = Column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4())
+    )
     # Nome da categoria
     name = Column(String(255), nullable=False)
 

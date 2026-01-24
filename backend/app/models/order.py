@@ -5,6 +5,7 @@ from app.database import Base
 import uuid
 from enum import Enum as PyEnum
 
+
 # =========================
 # Status do pedido
 # =========================
@@ -14,20 +15,35 @@ class OrderStatus(str, PyEnum):
     SHIPPED = "Enviado"
     CANCELLED = "Cancelado"
 
+
 # =========================
 # Pedido
 # =========================
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4())
+    )
     user_id = Column(String(36), nullable=False)
-    status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
+    status = Column(
+        Enum(OrderStatus),
+        default=OrderStatus.PENDING
+    )
     total = Column(Float, default=0.0)
     created_at = Column(DateTime, default=func.now())
 
     # Relacionamento com itens do pedido
-    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    items = relationship(
+        "OrderItem",
+        back_populates="order",
+        cascade=(
+            "all, delete-orphan"
+        )
+    )
+
 
 # =========================
 # Item do pedido
@@ -35,7 +51,11 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_items"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4())
+    )
     order_id = Column(String(36), ForeignKey("orders.id"))
     product_id = Column(String(36), nullable=False)
     quantity = Column(Float, nullable=False)
