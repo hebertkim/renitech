@@ -1,8 +1,9 @@
 # app/models/order.py
 
-from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Enum, func
+from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from app.database import Base
+from datetime import datetime
 import uuid
 import enum
 
@@ -52,16 +53,21 @@ class Order(Base):
         nullable=False
     )
 
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        nullable=False
-    )
+    # =========================
+    # Multi-Tenant
+    # =========================
+    company_id = Column(String(36), ForeignKey("companies.id"), nullable=True)
+    store_id = Column(String(36), ForeignKey("stores.id"), nullable=True)
+
+    # =========================
+    # Auditoria
+    # =========================
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # =========================
     # Relacionamentos
     # =========================
-
     items = relationship(
         "OrderItem",
         back_populates="order",
@@ -107,9 +113,20 @@ class OrderItem(Base):
     subtotal = Column(Float, nullable=False)
 
     # =========================
+    # Multi-Tenant
+    # =========================
+    company_id = Column(String(36), ForeignKey("companies.id"), nullable=True)
+    store_id = Column(String(36), ForeignKey("stores.id"), nullable=True)
+
+    # =========================
+    # Auditoria
+    # =========================
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # =========================
     # Relacionamentos
     # =========================
-
     order = relationship(
         "Order",
         back_populates="items"
