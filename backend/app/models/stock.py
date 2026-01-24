@@ -1,6 +1,6 @@
 # app/models/stock.py
 
-from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Enum, func
+from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from app.database import Base
 import uuid
@@ -62,3 +62,18 @@ class StockMovement(Base):
     # =========================
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # =========================
+    # Métodos auxiliares
+    # =========================
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "product_id": self.product_id,
+            "quantity": self.quantity,
+            "movement_type": self.movement_type.value,
+            "company_id": self.company_id,
+            "store_id": self.store_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }

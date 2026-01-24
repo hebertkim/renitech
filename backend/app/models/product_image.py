@@ -45,3 +45,17 @@ class ProductImage(Base):
     # =========================
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # =========================
+    # Métodos auxiliares
+    # =========================
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "product_id": self.product_id,
+            "image_url": self.image_url,
+            "company_id": self.company_id,
+            "store_id": self.store_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }

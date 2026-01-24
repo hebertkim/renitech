@@ -40,5 +40,24 @@ class ProductCategory(Base):
     company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
     store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True)
 
-    # Relação com produtos
+    # =========================
+    # Relações
+    # =========================
     products = relationship("Product", back_populates="category")
+
+    # =========================
+    # Métodos auxiliares
+    # =========================
+    def to_dict(self):
+        """Retorna dicionário simplificado para respostas de API"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "code": self.code,
+            "is_active": self.is_active,
+            "company_id": self.company_id,
+            "store_id": self.store_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
