@@ -22,7 +22,7 @@ router = APIRouter(prefix="/categories", tags=["Categories"])
 # =========================
 # CRIAR CATEGORIA
 # =========================
-@router.post("/categories/", response_model=ProductCategory)
+@router.post("/", response_model=ProductCategory)
 def create_category(
     category_data: ProductCategoryCreate,
     db: Session = Depends(get_db)

@@ -9,7 +9,7 @@ import uuid
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(100), nullable=False)
     email = Column(String(150), unique=True, nullable=False, index=True)
     password = Column(String(255), nullable=False)  # hashed
@@ -17,14 +17,15 @@ class User(Base):
     balance = Column(Float, default=0.0)
 
     # Multi-tenant
-    company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True)
-    store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True, index=True)
+    company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
+    store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True)
 
-    company = relationship("Company", back_populates="users")
-    store = relationship("Store", back_populates="users")
+    # Use caminho completo das classes para evitar problemas de import circular
+    company = relationship("app.models.company.Company", back_populates="users")
+    store = relationship("app.models.store.Store", back_populates="users")
 
     # Relacionamentos
-    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
+    orders = relationship("app.models.order.Order", back_populates="user", cascade="all, delete-orphan")
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

@@ -7,6 +7,7 @@ from datetime import datetime
 import uuid
 import enum
 
+# Enum para status do pedido
 class OrderStatus(str, enum.Enum):
     PENDING = "Pendente"
     PAID = "Pago"
@@ -19,16 +20,18 @@ class Order(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     customer_id = Column(String(36), ForeignKey("customers.id", ondelete="SET NULL"), nullable=True)
-    total = Column(Float, default=0.0, nullable=False)
-    status = Column(Enum(OrderStatus, name="order_status_enum"), default=OrderStatus.PENDING, nullable=False)
-
     company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
     store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True)
 
+    total = Column(Float, default=0.0, nullable=False)
+    status = Column(Enum(OrderStatus, name="order_status_enum"), default=OrderStatus.PENDING, nullable=False)
+
+    # Relacionamentos
     user = relationship("User", back_populates="orders")
     customer = relationship("Customer", back_populates="orders")
+    company = relationship("Company", back_populates="orders")
     store = relationship("Store", back_populates="orders")
-    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")  # <-- apenas o nome da classe
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -53,15 +56,17 @@ class OrderItem(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     order_id = Column(String(36), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
     product_id = Column(String(36), ForeignKey("products.id", ondelete="RESTRICT"), nullable=False)
+    company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
+    store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True)
+
     quantity = Column(Float, nullable=False)
     unit_price = Column(Float, nullable=False)
     subtotal = Column(Float, nullable=False)
 
-    company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
-    store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True)
-
+    # Relacionamentos
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
+    company = relationship("Company")
     store = relationship("Store")
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
