@@ -70,7 +70,7 @@ const navigation = [
     icon: ShoppingBagIcon,
     submenu: [
       { name: "Produtos", href: "/products" },
-      { name: "Categorias", href: "/product-categories" },
+      { name: "Categorias", href: "/categories" },
     ],
   },
 

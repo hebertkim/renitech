@@ -9,6 +9,7 @@ import RegisterView from '@/views/RegisterView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import ProfileSettings from '@/views/ProfileSettings.vue'
 import UsersView from '@/views/UsersView.vue'
+import CategoriesView from '@/views/CategoriesView.vue' // <-- nova view
 
 const routes = [
   { path: '/', redirect: '/welcome' },
@@ -18,6 +19,7 @@ const routes = [
   { path: '/dashboard', name: 'Dashboard', component: DashboardView, meta: { requiresAuth: true } },
   { path: '/profile', name: 'ProfileSettings', component: ProfileSettings, meta: { requiresAuth: true } },
   { path: '/users', name: 'Users', component: UsersView, meta: { requiresAuth: true } },
+  { path: '/categories', name: 'Categories', component: CategoriesView, meta: { requiresAuth: true } }, // rota categorias
 ]
 
 const router = createRouter({

@@ -1,73 +1,69 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
-import {
-  listCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from "@/services/api.js";
+import { defineStore } from 'pinia'
+import axios from 'axios'
 
-export const useCategoryStore = defineStore("category", () => {
-  const categories = ref([]);
+export const useCategoryStore = defineStore('category', {
+  state: () => ({
+    categories: [],
+  }),
+  actions: {
+    // Buscar todas categorias
+    async fetchCategories() {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await axios.get('http://localhost:8000/categories/', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        this.categories = res.data
+        return this.categories
+      } catch (err) {
+        console.error('Erro ao buscar categorias:', err)
+        return []
+      }
+    },
 
-  // ========================
-  // FETCH
-  // ========================
-  const fetchCategories = async () => {
-    try {
-      categories.value = await listCategories();
-    } catch (err) {
-      console.error("Erro ao buscar categorias:", err);
+    // Criar nova categoria
+    async createCategory(categoryData) {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await axios.post('http://localhost:8000/categories/', categoryData, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        this.categories.push(res.data)
+        return res.data
+      } catch (err) {
+        console.error('Erro ao criar categoria:', err)
+        throw err
+      }
+    },
+
+    // Atualizar categoria existente
+    async updateCategory(id, categoryData) {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await axios.put(`http://localhost:8000/categories/${id}`, categoryData, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const index = this.categories.findIndex(cat => cat.id === id)
+        if (index !== -1) this.categories[index] = res.data
+        return res.data
+      } catch (err) {
+        console.error('Erro ao atualizar categoria:', err)
+        throw err
+      }
+    },
+
+    // Excluir categoria
+    async deleteCategory(id) {
+      try {
+        const token = localStorage.getItem('token')
+        await axios.delete(`http://localhost:8000/categories/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        this.categories = this.categories.filter(cat => cat.id !== id)
+      } catch (err) {
+        console.error('Erro ao excluir categoria:', err)
+        throw err
+      }
     }
-  };
-
-  // ========================
-  // ADD
-  // ========================
-  const addCategory = async (payload) => {
-    try {
-      const newCat = await createCategory(payload);
-      categories.value.push(newCat);
-      return newCat;
-    } catch (err) {
-      console.error("Erro ao adicionar categoria:", err);
-      throw err;
-    }
-  };
-
-  // ========================
-  // EDIT
-  // ========================
-  const editCategory = async (id, payload) => {
-    try {
-      const updatedCat = await updateCategory(id, payload);
-      const idx = categories.value.findIndex((c) => c.id === id);
-      if (idx !== -1) categories.value[idx] = updatedCat;
-      return updatedCat;
-    } catch (err) {
-      console.error("Erro ao atualizar categoria:", err);
-      throw err;
-    }
-  };
-
-  // ========================
-  // DELETE
-  // ========================
-  const removeCategory = async (id) => {
-    try {
-      await deleteCategory(id);
-      categories.value = categories.value.filter((c) => c.id !== id);
-    } catch (err) {
-      console.error("Erro ao remover categoria:", err);
-      throw err;
-    }
-  };
-
-  return {
-    categories,
-    fetchCategories,
-    addCategory,
-    editCategory,
-    removeCategory,
-  };
-});
+  }
+})
