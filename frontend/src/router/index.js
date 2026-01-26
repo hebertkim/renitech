@@ -9,17 +9,23 @@ import RegisterView from '@/views/RegisterView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import ProfileSettings from '@/views/ProfileSettings.vue'
 import UsersView from '@/views/UsersView.vue'
-import CategoriesView from '@/views/CategoriesView.vue' // <-- nova view
+import CategoriesView from '@/views/CategoriesView.vue'
+import SearchResultsView from '@/views/SearchResultsView.vue' // ⭐ NOVA VIEW
 
 const routes = [
   { path: '/', redirect: '/welcome' },
-  { path: '/welcome', name: 'Welcome', component: WelcomeView }, // pública
-  { path: '/login', name: 'Login', component: LoginView }, // pública
-  { path: '/register', name: 'Register', component: RegisterView }, // pública
+
+  // ===== Públicas =====
+  { path: '/welcome', name: 'Welcome', component: WelcomeView },
+  { path: '/login', name: 'Login', component: LoginView },
+  { path: '/register', name: 'Register', component: RegisterView },
+  { path: '/search', name: 'SearchResults', component: SearchResultsView }, // ⭐ NOVA ROTA
+
+  // ===== Privadas =====
   { path: '/dashboard', name: 'Dashboard', component: DashboardView, meta: { requiresAuth: true } },
   { path: '/profile', name: 'ProfileSettings', component: ProfileSettings, meta: { requiresAuth: true } },
   { path: '/users', name: 'Users', component: UsersView, meta: { requiresAuth: true } },
-  { path: '/categories', name: 'Categories', component: CategoriesView, meta: { requiresAuth: true } }, // rota categorias
+  { path: '/categories', name: 'Categories', component: CategoriesView, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

@@ -12,7 +12,7 @@
           leave-from="opacity-100"
           leave-to="opacity-0"
         >
-          <div class="fixed inset-0 bg-gray-900/80" />
+          <div class="fixed inset-0 bg-black/70" />
         </TransitionChild>
         <div class="fixed inset-0 flex">
           <TransitionChild
@@ -43,9 +43,10 @@
               </TransitionChild>
 
               <!-- Sidebar -->
-              <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
-                <div class="flex h-16 shrink-0 items-center">
-                  <img class="h-8 w-8 rounded-full" :src="defaultLogo" alt="Logo" />
+              <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-black px-6 pb-4">
+                <div class="flex h-16 shrink-0 items-center gap-2">
+                  <img class="h-8 w-8 rounded" :src="defaultLogo" alt="Logo" />
+                  <span class="text-orange-500 font-bold">RENITECH</span>
                 </div>
                 <MenuSidebar />
               </div>
@@ -57,9 +58,10 @@
 
     <!-- Desktop Sidebar -->
     <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-      <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
-        <div class="flex h-16 shrink-0 items-center">
-          <img class="h-8 w-8 rounded-full" :src="defaultLogo" alt="Logo" />
+      <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-black px-6 pb-4">
+        <div class="flex h-16 shrink-0 items-center gap-2">
+          <img class="h-8 w-8 rounded" :src="defaultLogo" alt="Logo" />
+          <span class="text-orange-500 font-bold">RENITECH</span>
         </div>
         <MenuSidebar />
       </div>
@@ -69,63 +71,99 @@
     <div class="lg:pl-72">
       <!-- Top bar -->
       <div
-        class="sticky top-0 z-40 flex h-16 items-center gap-x-4 border-b bg-white px-4 shadow-sm sm:gap-x-6 lg:px-8"
+        class="sticky top-0 z-40 flex h-16 items-center gap-x-4 bg-black px-4 shadow sm:gap-x-6 lg:px-8"
       >
         <button
           type="button"
-          class="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+          class="-m-2.5 p-2.5 text-orange-500 lg:hidden"
           @click="sidebarOpen = true"
         >
           <Bars3Icon class="h-6 w-6" />
         </button>
 
         <div class="flex flex-1 gap-x-4 items-center lg:gap-x-6">
-          <form class="grid flex-1 grid-cols-1">
-            <input
-              type="search"
-              placeholder="Search"
-              class="block w-full pl-8 text-gray-900 outline-none"
-            />
-            <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
-          </form>
+          <!-- Search -->
+          <div class="flex flex-1">
+            <div class="relative w-full">
+              <MagnifyingGlassIcon class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <input
+                type="search"
+                placeholder="Buscar produtos..."
+                class="w-full rounded-md border border-gray-700 bg-white pl-10 pr-4 py-2 text-sm outline-none focus:border-orange-500"
+              />
+            </div>
+          </div>
 
-          <div class="flex items-center gap-x-4 lg:gap-x-6">
-            <button type="button" class="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
+          <div class="flex items-center gap-x-6">
+            <!-- Notifications -->
+            <button type="button" class="text-orange-500 hover:text-orange-400">
               <BellIcon class="h-6 w-6" />
             </button>
 
-            <!-- User -->
+            <!-- ========================= -->
+            <!-- AMAZON STYLE ACCOUNT -->
+            <!-- ========================= -->
             <Menu as="div" class="relative">
-              <MenuButton class="-m-1.5 flex items-center p-1.5">
-                <img class="h-8 w-8 rounded-full" :src="userAvatar" />
-                <span class="ml-4 text-sm font-semibold text-gray-900">
-                  {{ userName }}
+              <MenuButton class="flex flex-col items-start leading-tight hover:opacity-90">
+                <span class="text-xs text-gray-300">
+                  {{ isAuthenticated ? `Olá, ${userName}` : "Olá, faça seu login" }}
+                </span>
+                <span class="text-sm font-semibold text-orange-500">
+                  {{ isAuthenticated ? "Sua conta" : "Contas e Listas" }}
                 </span>
               </MenuButton>
 
               <MenuItems
-                class="absolute right-0 mt-2 w-32 rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5"
+                class="absolute right-0 mt-2 w-44 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/10"
               >
-                <MenuItem>
-                  <a href="/profile" class="block px-3 py-1 text-sm text-gray-900">Profile</a>
-                </MenuItem>
-                <MenuItem>
-                  <a href="#" @click.prevent="logout" class="block px-3 py-1 text-sm text-red-600">
-                    Logout
-                  </a>
-                </MenuItem>
+                <!-- NÃO LOGADO -->
+                <template v-if="!isAuthenticated">
+                  <MenuItem>
+                    <a
+                      href="/login"
+                      class="block px-4 py-2 text-sm text-gray-900 hover:bg-orange-50"
+                    >
+                      Entrar
+                    </a>
+                  </MenuItem>
+                  <MenuItem>
+                    <a
+                      href="/register"
+                      class="block px-4 py-2 text-sm text-gray-900 hover:bg-orange-50"
+                    >
+                      Criar conta
+                    </a>
+                  </MenuItem>
+                </template>
+
+                <!-- LOGADO -->
+                <template v-else>
+                  <MenuItem>
+                    <a
+                      href="/profile"
+                      class="block px-4 py-2 text-sm text-gray-900 hover:bg-orange-50"
+                    >
+                      Minha conta
+                    </a>
+                  </MenuItem>
+                  <MenuItem>
+                    <a
+                      href="#"
+                      @click.prevent="logout"
+                      class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Sair
+                    </a>
+                  </MenuItem>
+                </template>
               </MenuItems>
             </Menu>
-
-            <button @click="logout" class="text-gray-400 hover:text-gray-500">
-              <ArrowRightOnRectangleIcon class="h-6 w-6" />
-            </button>
           </div>
         </div>
       </div>
 
       <!-- Page -->
-      <main class="py-10">
+      <main class="py-10 bg-gray-50 min-h-screen">
         <div class="px-4 sm:px-6 lg:px-8">
           <slot />
         </div>
@@ -135,9 +173,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"
+import { ref, computed } from "vue"
+import { useAuthStore } from "@/stores/auth"
+
 import MenuSidebar from "@/components/MenuSidebar.vue"
-import defaultLogo from "@/assets/img/logo.png"
+import defaultLogo from "@/assets/img/Logo_renitech.jpg"
 
 import {
   Dialog, DialogPanel, Menu, MenuButton, MenuItem, MenuItems,
@@ -145,45 +185,19 @@ import {
 } from "@headlessui/vue"
 
 import {
-  Bars3Icon, BellIcon, XMarkIcon, ArrowRightOnRectangleIcon,
+  Bars3Icon, BellIcon, XMarkIcon,
 } from "@heroicons/vue/24/outline"
 
 import { MagnifyingGlassIcon } from "@heroicons/vue/20/solid"
 
 const sidebarOpen = ref(false)
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"
+const authStore = useAuthStore()
 
-const defaultAvatar = "https://via.placeholder.com/150?text=User"
-const userName = ref("Guest")
-const userAvatar = ref(defaultAvatar)
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const userName = computed(() => authStore.user?.name || "")
 
-// 🔹 Função para carregar usuário do localStorage
-const loadUser = () => {
-  const user = localStorage.getItem("user")
-  if (user) {
-    const parsed = JSON.parse(user)
-    userName.value = parsed.name
-    userAvatar.value = parsed.avatar
-      ? API_URL + parsed.avatar
-      : defaultAvatar
-  }
-}
-
-onMounted(() => {
-  loadUser()
-  // 🔹 Escuta atualizações de localStorage (avatar atualizado)
-  window.addEventListener("storage", (event) => {
-    if (event.key === "user") {
-      loadUser()
-    }
-  })
-})
-
-// Logout
 function logout() {
-  localStorage.removeItem("token")
-  localStorage.removeItem("user")
-  window.location.href = "/login"
+  authStore.logout()
 }
 </script>

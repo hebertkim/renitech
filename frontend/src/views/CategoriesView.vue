@@ -138,7 +138,7 @@ const loadCategories = async () => {
   const start = Date.now()
   categories.value = await categoryStore.fetchCategories()
   const elapsed = Date.now() - start
-  const remaining = 3000 - elapsed
+  const remaining = 500 - elapsed
   if (remaining > 0) await new Promise(r => setTimeout(r, remaining))
   loading.value = false
 }

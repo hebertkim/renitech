@@ -7,22 +7,21 @@ export const useAuthStore = defineStore("auth", () => {
   // ========================
   // STATE
   // ========================
-  const loadUserFromStorage = () => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
-      try {
-        return JSON.parse(storedUser);
-      } catch (e) {
-        console.error("Erro ao parsear usuário do localStorage:", e);
-        localStorage.removeItem("user");
-        return null;
-      }
-    }
-    return null;
-  };
 
-  const user = ref(loadUserFromStorage());
+  // ❗ NÃO carregamos mais usuário do localStorage
+  const user = ref(null);
+
   const isAuthenticated = computed(() => !!user.value);
+
+  // ========================
+  // INTERNAL HELPERS
+  // ========================
+
+  const clearSession = () => {
+    user.value = null;
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+  };
 
   // ========================
   // ACTIONS
@@ -31,16 +30,13 @@ export const useAuthStore = defineStore("auth", () => {
   // Busca usuário logado
   const fetchUser = async () => {
     try {
-      const userData = await apiGetUser(); // retorna o usuário
+      const userData = await apiGetUser(); // retorna o usuário logado pelo token
       user.value = userData;
-      localStorage.setItem("user", JSON.stringify(userData));
       return userData;
     } catch (err) {
       if (err.response && err.response.status === 401) {
         console.warn("Token inválido ou expirado. Limpando sessão...");
-        user.value = null;
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+        clearSession();
       }
       throw err;
     }
@@ -54,24 +50,34 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       console.error("Erro no login:", err);
+      clearSession();
       return false;
     }
   };
 
-  // Logout
+  // Logout manual
   const logout = () => {
-    apiLogout();
-    user.value = null;
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    try {
+      apiLogout();
+    } catch (e) {
+      // mesmo se der erro, limpamos local
+    }
+    clearSession();
     window.location.href = "/login";
   };
 
-  // Atualiza perfil local
+  // Atualiza perfil local (apenas em memória)
   const updateProfile = (updatedUser) => {
     user.value = { ...user.value, ...updatedUser };
-    localStorage.setItem("user", JSON.stringify(user.value));
   };
+
+  // ========================
+  // AUTO LOGOUT AO FECHAR ABA
+  // ========================
+
+  window.addEventListener("beforeunload", () => {
+    clearSession();
+  });
 
   return {
     user,
