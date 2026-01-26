@@ -1,17 +1,37 @@
 // src/stores/auth.js
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { login as apiLogin, logout as apiLogout, getUser as apiGetUser } from "@/services/api.js";
+import {
+  login as apiLogin,
+  logout as apiLogout,
+  getUser as apiGetUser,
+} from "@/services/api.js";
 
 export const useAuthStore = defineStore("auth", () => {
   // ========================
   // STATE
   // ========================
 
-  // ❗ NÃO carregamos mais usuário do localStorage
+  // ❗ Não carregamos usuário do localStorage, só do backend via token
   const user = ref(null);
 
+  // ========================
+  // COMPUTEDS
+  // ========================
+
   const isAuthenticated = computed(() => !!user.value);
+
+  const role = computed(() => user.value?.role || "cliente");
+
+  const isClient = computed(() => role.value === "cliente");
+
+  const isSeller = computed(() => role.value === "vendedor");
+
+  const isAdmin = computed(() =>
+    ["admin", "superadmin", "vendedor"].includes(role.value)
+  );
+
+  const isSuperAdmin = computed(() => role.value === "superadmin");
 
   // ========================
   // INTERNAL HELPERS
@@ -27,10 +47,10 @@ export const useAuthStore = defineStore("auth", () => {
   // ACTIONS
   // ========================
 
-  // Busca usuário logado
+  // Busca usuário logado pelo token
   const fetchUser = async () => {
     try {
-      const userData = await apiGetUser(); // retorna o usuário logado pelo token
+      const userData = await apiGetUser(); // /users/me
       user.value = userData;
       return userData;
     } catch (err) {
@@ -60,10 +80,12 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       apiLogout();
     } catch (e) {
-      // mesmo se der erro, limpamos local
+      // mesmo se backend falhar, limpamos local
     }
     clearSession();
-    window.location.href = "/login";
+
+    // Sempre volta pro ecommerce
+    window.location.href = "/welcome";
   };
 
   // Atualiza perfil local (apenas em memória)
@@ -79,9 +101,23 @@ export const useAuthStore = defineStore("auth", () => {
     clearSession();
   });
 
+  // ========================
+  // EXPORTS
+  // ========================
+
   return {
+    // state
     user,
+
+    // computed
+    role,
     isAuthenticated,
+    isClient,
+    isSeller,
+    isAdmin,
+    isSuperAdmin,
+
+    // actions
     login,
     logout,
     fetchUser,

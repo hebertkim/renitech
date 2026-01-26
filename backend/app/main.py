@@ -15,12 +15,12 @@ from app.database import Base, engine, wait_for_db, SessionLocal
 # IMPORTAR ROTAS
 # ============================
 from app.routes import (
-    dashboard as dashboard_routes,
-    users as users_routes,
-    products as products_routes,
-    categories as categories_routes,
-    stock as stock_routes,
-    orders as orders_routes,
+    dashboard as dashboard_routes,   # 🔒 admin
+    users as users_routes,           # 🔒 admin / auth
+    products as products_routes,     # 🌐 público + admin
+    categories as categories_routes, # 🌐 público + admin
+    stock as stock_routes,           # 🔒 admin
+    orders as orders_routes,         # 🔒 admin
 )
 
 # ============================
@@ -53,7 +53,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # ============================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Para desenvolvimento; em produção, restringir
+    allow_origins=["*"],  # ⚠️ Em produção, restringir
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,17 +62,18 @@ app.add_middleware(
 # ============================
 # REGISTRAR ROTAS
 # ============================
+app.include_router(users_routes.router)       # auth, perfil, etc
+app.include_router(products_routes.router)    # público + admin
+app.include_router(categories_routes.router)  # público + admin
+
+# 🔒 Rotas administrativas
 app.include_router(dashboard_routes.router)
-app.include_router(users_routes.router)
-app.include_router(products_routes.router)
-app.include_router(categories_routes.router)
 app.include_router(stock_routes.router)
 app.include_router(orders_routes.router)
 
 # ============================
 # DEPENDÊNCIA DB
 # ============================
-
 
 def get_db():
     db = SessionLocal()
@@ -85,7 +86,6 @@ def get_db():
 # STARTUP
 # ============================
 
-
 @app.on_event("startup")
 def startup_event():
     print("Aguardando banco de dados...")
@@ -96,7 +96,6 @@ def startup_event():
     Base.metadata.create_all(bind=engine)
 
     print("API pronta para uso!")
-
 
 # ============================
 # HEALTH CHECK

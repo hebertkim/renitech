@@ -1,5 +1,6 @@
 # app/routes/dashboard.py
-from fastapi import APIRouter, Depends
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -9,19 +10,30 @@ from app.schemas.dashboard import (
     LowStockProduct
 )
 from app.crud.dashboard import get_dashboard_data
-
+from app.models.user import User
+from app.security import get_current_user
 
 # ==============================
 # Router
 # ==============================
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
+# ==============================
+# DEPENDÊNCIA DE PERMISSÃO
+# ==============================
+def require_admin(user: User = Depends(get_current_user)):
+    if user.role not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    return user
 
-# =========================
-# Função do Dashboard
-# =========================
+# ==============================
+# Função do Dashboard (ADMIN)
+# ==============================
 @router.get("/", response_model=DashboardResponse)
-def get_dashboard(db: Session = Depends(get_db)):
+def get_dashboard(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_admin),
+):
     dashboard_data = get_dashboard_data(db)
 
     low_stock_products = [

@@ -16,15 +16,17 @@ class User(Base):
     avatar = Column(String(500), nullable=True)
     balance = Column(Float, default=0.0)
 
+    # 👇 ROLE DO USUÁRIO
+    # cliente | vendedor | admin | superadmin
+    role = Column(String(50), default="cliente", nullable=False)
+
     # Multi-tenant
     company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
     store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True)
 
-    # Use caminho completo das classes para evitar problemas de import circular
     company = relationship("app.models.company.Company", back_populates="users")
     store = relationship("app.models.store.Store", back_populates="users")
 
-    # Relacionamentos
     orders = relationship("app.models.order.Order", back_populates="user", cascade="all, delete-orphan")
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -37,6 +39,7 @@ class User(Base):
             "email": self.email,
             "avatar": self.avatar,
             "balance": self.balance,
+            "role": self.role,
             "company_id": self.company_id,
             "store_id": self.store_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
