@@ -2,16 +2,23 @@
 from sqlalchemy.orm import Session
 from app.models.product import Product, ProductImage
 from app.schemas import product as schemas
+from app.security.tenant import Tenant
 from uuid import uuid4
 import os
 
 # =========================
 # CREATE
 # =========================
-def create_product(db: Session, product_data: schemas.ProductCreate):
-    # Extrai imagens da criação (se houver)
-    images_data = product_data.images if hasattr(product_data, "images") else []
+def create_product(db: Session, product_data: schemas.ProductCreate, tenant: Tenant):
+    """
+    Cria um produto vinculado ao tenant do usuário (company_id + store_id).
+    """
+    images_data = getattr(product_data, "images", [])
     product_dict = product_data.dict(exclude={"images"})
+
+    # Adiciona automaticamente os IDs do tenant
+    product_dict["company_id"] = tenant.company_id
+    product_dict["store_id"] = tenant.store_id
 
     db_product = Product(**product_dict)
     db.add(db_product)
@@ -23,7 +30,9 @@ def create_product(db: Session, product_data: schemas.ProductCreate):
         db_image = ProductImage(
             id=str(uuid4()),
             product_id=db_product.id,
-            image_url=img_url
+            image_url=img_url,
+            company_id=tenant.company_id,
+            store_id=tenant.store_id
         )
         db.add(db_image)
     if images_data:
@@ -36,19 +45,42 @@ def create_product(db: Session, product_data: schemas.ProductCreate):
 # =========================
 # READ
 # =========================
-def get_product(db: Session, product_id: str):
-    return db.query(Product).filter(Product.id == product_id).first()
+def get_product(db: Session, product_id: str, tenant: Tenant):
+    """
+    Retorna um produto específico do tenant.
+    """
+    return (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.company_id == tenant.company_id)
+        .first()
+    )
 
 
-def get_products(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Product).offset(skip).limit(limit).all()
+def get_products(db: Session, tenant: Tenant, skip: int = 0, limit: int = 100):
+    """
+    Retorna todos os produtos do tenant, com paginação.
+    """
+    return (
+        db.query(Product)
+        .filter(Product.company_id == tenant.company_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 # =========================
 # UPDATE
 # =========================
-def update_product(db: Session, product_id: str, product_data: schemas.ProductUpdate):
-    db_product = db.query(Product).filter(Product.id == product_id).first()
+def update_product(db: Session, product_id: str, product_data: schemas.ProductUpdate, tenant: Tenant):
+    """
+    Atualiza um produto existente, somente dentro do tenant.
+    """
+    db_product = (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.company_id == tenant.company_id)
+        .first()
+    )
     if not db_product:
         return None
 
@@ -61,7 +93,6 @@ def update_product(db: Session, product_id: str, product_data: schemas.ProductUp
 
     # Atualiza imagens se fornecidas
     if hasattr(product_data, "images") and product_data.images is not None:
-        # Remove imagens antigas do banco e arquivos físicos
         old_images = db.query(ProductImage).filter(ProductImage.product_id == product_id).all()
         for img in old_images:
             if os.path.exists(img.image_url):
@@ -69,12 +100,13 @@ def update_product(db: Session, product_id: str, product_data: schemas.ProductUp
             db.delete(img)
         db.commit()
 
-        # Adiciona novas imagens
         for img_url in product_data.images:
             db_image = ProductImage(
                 id=str(uuid4()),
                 product_id=product_id,
-                image_url=img_url
+                image_url=img_url,
+                company_id=tenant.company_id,
+                store_id=tenant.store_id
             )
             db.add(db_image)
         db.commit()
@@ -86,12 +118,18 @@ def update_product(db: Session, product_id: str, product_data: schemas.ProductUp
 # =========================
 # DELETE
 # =========================
-def delete_product(db: Session, product_id: str):
-    db_product = db.query(Product).filter(Product.id == product_id).first()
+def delete_product(db: Session, product_id: str, tenant: Tenant):
+    """
+    Deleta um produto e suas imagens, apenas dentro do tenant.
+    """
+    db_product = (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.company_id == tenant.company_id)
+        .first()
+    )
     if not db_product:
         return None
 
-    # Remove imagens associadas e arquivos físicos
     images = db.query(ProductImage).filter(ProductImage.product_id == product_id).all()
     for img in images:
         if os.path.exists(img.image_url):
