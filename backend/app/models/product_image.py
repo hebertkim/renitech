@@ -6,7 +6,9 @@ from app.database import Base
 from datetime import datetime
 import uuid
 
-
+# =========================
+# Imagem de Produto
+# =========================
 class ProductImage(Base):
     __tablename__ = "product_images"
 
@@ -21,13 +23,15 @@ class ProductImage(Base):
     )
 
     # =========================
-    # Relacionamento com produto
+    # Relacionamento com Produto
     # =========================
-    product_id = Column(String(36), ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
-    product = relationship(
-        "Product",
-        back_populates="images"
+    product_id = Column(
+        String(36),
+        ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
     )
+    product = relationship("Product", back_populates="images")
 
     # =========================
     # Dados da imagem
@@ -37,8 +41,8 @@ class ProductImage(Base):
     # =========================
     # Multi-Tenant
     # =========================
-    company_id = Column(String(36), ForeignKey("companies.id"), nullable=True)
-    store_id = Column(String(36), ForeignKey("stores.id"), nullable=True)
+    company_id = Column(String(36), ForeignKey("companies.id"), nullable=True, index=True)
+    store_id = Column(String(36), ForeignKey("stores.id"), nullable=True, index=True)
 
     # =========================
     # Auditoria
@@ -47,7 +51,14 @@ class ProductImage(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # =========================
-    # Métodos auxiliares
+    # Propriedade auxiliar multi-tenant
+    # =========================
+    @property
+    def tenant_id(self):
+        return self.company_id
+
+    # =========================
+    # Serialização manual
     # =========================
     def to_dict(self):
         return {
@@ -56,6 +67,7 @@ class ProductImage(Base):
             "image_url": self.image_url,
             "company_id": self.company_id,
             "store_id": self.store_id,
+            "tenant_id": self.tenant_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

@@ -6,10 +6,20 @@ from app.database import Base
 from datetime import datetime
 import uuid
 
+# =========================
+# Produto
+# =========================
 class Product(Base):
     __tablename__ = "products"
 
+    # =========================
+    # Primary Key
+    # =========================
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+
+    # =========================
+    # Dados básicos do produto
+    # =========================
     name = Column(String(255), nullable=False)
     description = Column(String(1000), nullable=True)
     price = Column(Float, nullable=False)
@@ -22,30 +32,51 @@ class Product(Base):
     show_in_promotion = Column(Boolean, default=False)
     no_stock_control = Column(Boolean, default=False)
 
-    # Multi-tenant
-    company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
-    store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True)
+    # =========================
+    # Multi-Tenant
+    # =========================
+    company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True)
+    store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True, index=True)
 
     company = relationship("Company", back_populates="products")
     store = relationship("Store", back_populates="products")
 
+    # =========================
     # Categoria
-    category_id = Column(String(36), ForeignKey("product_categories.id"))
+    # =========================
+    category_id = Column(String(36), ForeignKey("product_categories.id"), nullable=True)
     category = relationship("ProductCategory", back_populates="products")
 
+    # =========================
     # Impostos
+    # =========================
     icms = Column(Numeric(10, 2), nullable=True)
     ipi = Column(Numeric(10, 2), nullable=True)
     pis = Column(Numeric(10, 2), nullable=True)
     cofins = Column(Numeric(10, 2), nullable=True)
 
+    # =========================
     # Relacionamentos
+    # =========================
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
     stock_movements = relationship("StockMovement", back_populates="product", cascade="all, delete-orphan")
 
+    # =========================
+    # Auditoria
+    # =========================
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    # =========================
+    # Propriedade auxiliar multi-tenant
+    # =========================
+    @property
+    def tenant_id(self):
+        return self.company_id
+
+    # =========================
+    # Serialização manual
+    # =========================
     def to_dict(self):
         return {
             "id": self.id,
@@ -62,6 +93,7 @@ class Product(Base):
             "no_stock_control": self.no_stock_control,
             "company_id": self.company_id,
             "store_id": self.store_id,
+            "tenant_id": self.tenant_id,
             "category_id": self.category_id,
             "images": [img.to_dict() for img in self.images],
             "icms": float(self.icms) if self.icms else None,

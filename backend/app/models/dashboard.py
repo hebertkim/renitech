@@ -1,7 +1,6 @@
 # app/models/dashboard.py
 from sqlalchemy.orm import Session
-from app.models.product import Product
-from app.models.product import ProductCategory
+from app.models.product import Product, ProductCategory
 from app.models.order import Order
 from app.models.customer import Customer
 
@@ -18,48 +17,47 @@ def get_dashboard_data(db: Session, company_id: str | None = None, store_id: str
     - total de clientes
     - produtos com estoque baixo
     """
-    # Filtro padrão para multi-tenant
-    product_filter = []
-    if company_id:
-        product_filter.append(Product.company_id == company_id)
-    if store_id:
-        product_filter.append(Product.store_id == store_id)
 
+    # =========================
+    # Filtros multi-tenant
+    # =========================
+    tenant_filters = lambda model: [
+        *( [model.company_id == company_id] if company_id else [] ),
+        *( [model.store_id == store_id] if store_id else [] )
+    ]
+
+    # =========================
     # Total de produtos
-    total_products = db.query(Product).filter(*product_filter).count()
+    # =========================
+    total_products = db.query(Product).filter(*tenant_filters(Product)).count()
 
-    # Total de categorias (considerando multi-tenant se quiser)
-    category_filter = []
-    if company_id:
-        category_filter.append(ProductCategory.company_id == company_id)
-    if store_id:
-        category_filter.append(ProductCategory.store_id == store_id)
-    total_categories = db.query(ProductCategory).filter(*category_filter).count()
+    # =========================
+    # Total de categorias
+    # =========================
+    total_categories = db.query(ProductCategory).filter(*tenant_filters(ProductCategory)).count()
 
+    # =========================
     # Total de pedidos
-    order_filter = []
-    if company_id:
-        order_filter.append(Order.company_id == company_id)
-    if store_id:
-        order_filter.append(Order.store_id == store_id)
-    total_orders = db.query(Order).filter(*order_filter).count()
+    # =========================
+    total_orders = db.query(Order).filter(*tenant_filters(Order)).count()
 
+    # =========================
     # Total de clientes
-    customer_filter = []
-    if company_id:
-        customer_filter.append(Customer.company_id == company_id)
-    if store_id:
-        customer_filter.append(Customer.store_id == store_id)
-    total_customers = db.query(Customer).filter(*customer_filter).count()
+    # =========================
+    total_customers = db.query(Customer).filter(*tenant_filters(Customer)).count()
 
-    # Produtos com estoque baixo (abaixo do estoque mínimo)
+    # =========================
+    # Produtos com estoque baixo
+    # =========================
     low_stock_products = (
         db.query(Product)
-        .filter(Product.stock_quantity <= Product.stock_minimum, *product_filter)
+        .filter(Product.stock_quantity <= Product.stock_minimum, Product.is_active == True, *tenant_filters(Product))
         .all()
     )
 
+    # =========================
     # Retorno padronizado
+    # =========================
     return {
         "total_products": total_products,
         "total_categories": total_categories,

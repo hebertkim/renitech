@@ -1,4 +1,5 @@
 # app/models/category.py
+
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -29,7 +30,7 @@ class ProductCategory(Base):
     code = Column(String(50), unique=True, nullable=True)
 
     # Status ativo/inativo
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     # =========================
     # Auditoria / Multi-tenant
@@ -37,11 +38,12 @@ class ProductCategory(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    # Multi-tenant
     company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
     store_id = Column(String(36), ForeignKey("stores.id", ondelete="SET NULL"), nullable=True)
 
     # =========================
-    # Relações
+    # Relacionamentos
     # =========================
     products = relationship("Product", back_populates="category")
 
@@ -49,7 +51,10 @@ class ProductCategory(Base):
     # Métodos auxiliares
     # =========================
     def to_dict(self):
-        """Retorna dicionário simplificado para respostas de API"""
+        """
+        Retorna um dicionário padronizado para respostas de API,
+        incluindo informações de auditoria e multi-tenant.
+        """
         return {
             "id": self.id,
             "name": self.name,
