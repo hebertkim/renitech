@@ -1,5 +1,3 @@
-# backend/app/dependencies.py
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -78,6 +76,18 @@ def require_superadmin(current_user: User = Depends(get_current_user)) -> User:
     Apenas superadmin
     """
     if current_user.role != "superadmin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permissão insuficiente",
+        )
+    return current_user
+
+
+def require_staff(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Usuário com role 'admin', 'superadmin', ou 'vendedor'
+    """
+    if current_user.role not in ["admin", "superadmin", "vendedor"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Permissão insuficiente",
