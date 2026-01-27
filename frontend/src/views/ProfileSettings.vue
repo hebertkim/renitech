@@ -180,7 +180,7 @@ const saveProfile = async () => {
     window.dispatchEvent(new Event("storage"))
 
     alert("Profile updated successfully!")
-    router.push("/dashboard")
+    router.push("/welcome")
   } catch (err) {
     console.error(err)
     alert("Erro ao salvar perfil")
@@ -191,6 +191,6 @@ const saveProfile = async () => {
 // Cancelar
 // ============================
 const cancelProfile = () => {
-  router.push("/dashboard")
+  router.push("/welcome")
 }
 </script>

@@ -50,7 +50,7 @@ const onSubmit = async () => {
     const success = await auth.login(email.value, password.value);
     if (success) {
       console.log('Login bem-sucedido, redirecionando...');
-      await router.push('/dashboard');
+      await router.push('/welcome');
     } else {
       console.error('Credenciais inválidas.');
       alert('Invalid credentials');
